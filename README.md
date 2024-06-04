@@ -16,7 +16,7 @@
 
 ### Technologies Used
 
-- **Front-end:** HTML, CSS, JavaScript
+- **Front-end:** HTML, CSS, JavaScript , react
 - **Back-end:** Node.js, Express
 - **Database:** MongoDB (NoSQL)
 - **Additional Libraries/Tools:** 
@@ -44,6 +44,3 @@
 
 Contributions are welcome! Please feel free to submit pull requests or raise issues if you encounter any problems or have suggestions for improvements.
 
-### License
-
-This project is licensed under the [MIT License](LICENSE).
