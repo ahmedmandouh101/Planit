@@ -16,7 +16,6 @@
 
 ### Technologies Used
 
-- **Front-end:** HTML, CSS, JavaScript , react
 - **Back-end:** Node.js, Express
 - **Database:** MongoDB (NoSQL)
 - **Additional Libraries/Tools:** 
