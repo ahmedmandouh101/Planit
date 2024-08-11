@@ -40,6 +40,15 @@
 1. Access the API endpoints using tools like Postman or through your front-end application.
 2. Refer to the API documentation for detailed usage instructions.
 
+
+## **Live Demo**
+
+The End Points is deployed and can be accessed at the following link:
+
+[**P L A N I T.com - Live Application**](https://graduation-project-1fv9.onrender.com/api/v1/places/)
+
+Feel free to explore the features and functionality of the platform.
+
 ### Contributing
 
 Contributions are welcome! Please feel free to submit pull requests or raise issues if you encounter any problems or have suggestions for improvements.
