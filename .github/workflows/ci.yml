@@ -14,14 +14,20 @@ jobs:
       - run: npm test
       - name: Start integration services
         run: |
-          docker run --detach --name planit-mongodb --publish 127.0.0.1:27017:27017 mongo:8.0
+          docker run --detach --name planit-mongodb --publish 127.0.0.1:27017:27017 mongo:7.0.45
           docker run --detach --name planit-mailpit --publish 127.0.0.1:1025:1025 --publish 127.0.0.1:8025:8025 axllent/mailpit:v1.31.6
       - name: Wait for integration services
         timeout-minutes: 3
         run: |
           for attempt in {1..30}; do
-            if docker exec planit-mongodb mongosh --host 127.0.0.1 --quiet --eval 'quit(db.adminCommand({ping:1}).ok ? 0 : 1)' &&
-               docker exec planit-mailpit /mailpit readyz; then
+            for service in planit-mongodb planit-mailpit; do
+              if [ "$(docker inspect --format '{{.State.Running}}' "$service")" != "true" ]; then
+                echo "::error::$service exited before becoming ready"
+                exit 1
+              fi
+            done
+            if timeout 5s docker exec planit-mongodb mongosh --host 127.0.0.1 --quiet --eval 'quit(db.adminCommand({ping:1}).ok ? 0 : 1)' &&
+               timeout 5s docker exec planit-mailpit /mailpit readyz; then
               exit 0
             fi
             sleep 2
