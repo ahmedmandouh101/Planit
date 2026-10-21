@@ -1,6 +1,7 @@
 const mongoose = require('mongoose');
 const dotenv = require('dotenv');
-const app = require('./app');
+dotenv.config();
+dotenv.config({ path: './config.env' });
 
 process.on('uncaughtException', (err) => {
   console.log('UNCAUGHT EXCEPTION! 💥 Shutting down...');
@@ -8,7 +9,16 @@ process.on('uncaughtException', (err) => {
   process.exit(1);
 });
 
-dotenv.config({ path: './config.env' });
+if (!(process.env.DATABASE_LOCAL || process.env.DATABASE)) {
+  throw new Error('Set DATABASE_LOCAL or DATABASE in the environment');
+}
+if (!process.env.JWT_SECRET || process.env.JWT_SECRET.length < 32) {
+  throw new Error('Set JWT_SECRET to a random secret of at least 32 characters');
+}
+process.env.JWT_SECRET_EXPIRES_IN ||= '7d';
+process.env.JWT_COOKIE_EXPIRES_IN ||= '7';
+const app = require('./app');
+let server;
 
 // const DB = process.env.DATABASE.replace(
 //   '<PASSWORD>',
@@ -16,21 +26,30 @@ dotenv.config({ path: './config.env' });
 // );
 
 mongoose
-  .connect(process.env.DATABASE_LOCAL, {
+  .connect(process.env.DATABASE_LOCAL || process.env.DATABASE, {
     // .connect(DB, { //if you wanna connect on the local database
   })
-  .then(() => console.log('Database connection successful!'));
+  .then(() => {
+    console.log('Database connection successful!');
+    const port = process.env.PORT || 3000;
+    server = app.listen(port, () => console.log(`App running on port ${port}...`));
+  });
 
 // console.log(process.env); // js has two environments development and production
 // const port = 3000;
-const server = app.listen(process.env.PORT, () => {
-  console.log(`App running on port ${process.env.PORT}...`);
-});
 
 process.on('unhandledRejection', (err) => {
   console.log('UNHANDLED REJECTION! 💥 Shutting down...');
   console.log(err.name, err.message);
-  server.close(() => {
-    process.exit(1);
-  });
+  if (server) server.close(() => process.exit(1));
+  else process.exit(1);
 });
+
+const shutdown = () => {
+  const timeout = setTimeout(() => process.exit(1), 10000);
+  timeout.unref();
+  if (server) server.close(() => mongoose.disconnect().then(() => process.exit(0)));
+  else mongoose.disconnect().then(() => process.exit(0));
+};
+process.on('SIGTERM', shutdown);
+process.on('SIGINT', shutdown);

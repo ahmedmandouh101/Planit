@@ -3,17 +3,20 @@ const Tour = require('../model/tourModel');
 const Booking = require('../model/bookingModel');
 const catchAsync = require('../utils/catchAsync');
 // eslint-disable-next-line import/order, import/newline-after-import
-const dotenv = require('dotenv');
-dotenv.config({ path: './config.env' });
 // eslint-disable-next-line import/order
-const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
+const AppError = require('../utils/AppError');
 // const AppError = require('../utils/AppError');
 const factory = require('./handlerFactory');
 
 // console.log( process.env.STRIPE_SECRET_KEY);
 exports.getcheckoutSession = catchAsync(async (req, res, next) => {
+  if (!process.env.STRIPE_SECRET_KEY) {
+    return next(new AppError('Payments are not configured', 503));
+  }
+  const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
   // 1) get the currently booked tour
   const tour = await Tour.findById(req.params.tourId);
+  if (!tour) return next(new AppError('No tour found with that ID', 404));
   // 2) create checkout session
   const session = await stripe.checkout.sessions.create({
     payment_method_types: ['card'],

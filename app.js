@@ -74,7 +74,7 @@ app.use((req, res, next) => {
 });
 
 app.get('/', (req, res) => {
-  res.status(200).render('base');
+  res.status(200).json({ status: 'success', message: 'Planit API', version: 'v1' });
 });
 
 app.use('/api/v1/tours', tourRouter);
@@ -87,7 +87,7 @@ app.use('/api/v1/drivers', driverRouter);
 
 // To handle invalid URL errors  (WildCard)
 app.all('*', (req, res, next) => {
-  next(new AppError(` Cannot find ${req.originalUrl} pn this server!`), 404);
+  next(new AppError(`Cannot find ${req.originalUrl} on this server!`, 404));
 });
 
 app.use(globalErrorHandler);

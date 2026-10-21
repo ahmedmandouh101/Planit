@@ -108,5 +108,8 @@ exports.createUser = (req, res) => {
 
 exports.getAllUser = factory.getAll(User);
 exports.getUser = factory.getOne(User);
-exports.updateUser = factory.updateOne(User);
+exports.updateUser = (req, res, next) => {
+  req.body = filterObj(req.body, 'name', 'email', 'photo', 'role');
+  return factory.updateOne(User)(req, res, next);
+};
 exports.deleteUser = factory.deleteOne(User);

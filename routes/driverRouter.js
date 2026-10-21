@@ -7,12 +7,16 @@ router
   .route('/')
   .get(driverController.getAllDrivers)
   .post(
+    authController.protect,
+    authController.restrictTo('admin'),
     driverController.addDriver,
   );
 router
   .route('/:id')
   .get(driverController.getDriver)
   .delete(
+    authController.protect,
+    authController.restrictTo('admin'),
     driverController.deleteDriver,
   );
 
