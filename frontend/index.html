@@ -1,0 +1,179 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta
+      name="description"
+      content="Discover Egypt with Planit. Explore tours, compare experiences, and find your next destination."
+    />
+    <title>Planit — Discover a different side of Egypt</title>
+    <link rel="stylesheet" href="/styles.css" />
+    <script src="/app.js" defer></script>
+  </head>
+  <body>
+    <a class="skip-link" href="#explore">Skip to experiences</a>
+    <header class="site-header wrap">
+      <a class="brand" href="/" aria-label="Planit home" dir="ltr"
+        >planit<span>↗</span></a
+      >
+      <nav aria-label="Main navigation">
+        <a href="#explore">Experiences</a><a href="#how">How it works</a>
+      </nav>
+      <a class="header-link" href="#explore"
+        >Explore Egypt <span aria-hidden="true">↗</span></a
+      >
+    </header>
+    <main>
+      <section class="hero wrap" aria-labelledby="hero-title">
+        <div class="hero-copy">
+          <p class="eyebrow">
+            <span class="dot"></span> A NEW PERSPECTIVE ON EGYPT
+          </p>
+          <h1 id="hero-title">Go somewhere<br /><em>worth remembering.</em></h1>
+          <p class="hero-description">
+            From Cairo's historic streets to the timeless landscapes of
+            Luxor.<br class="desktop-break" />
+            Find an experience that makes the journey yours.
+          </p>
+          <a class="button primary" href="#explore"
+            >Explore experiences <span aria-hidden="true">↗</span></a
+          >
+          <div class="hero-note">
+            <span aria-hidden="true">✳</span> A little discovery. A lasting
+            memory.
+          </div>
+        </div>
+        <div
+          class="destination-art"
+          role="img"
+          aria-label="Illustration of Egyptian pyramids beneath a desert sun"
+        >
+          <div class="art-topline">
+            <span dir="ltr">EGYPT, THROUGH YOUR EYES</span
+            ><span>26° NORTH</span>
+          </div>
+          <div class="sun"></div>
+          <div class="pyramid pyramid-back"></div>
+          <div class="pyramid pyramid-front"></div>
+          <div class="dune"></div>
+          <div class="art-caption">
+            <span>Rediscover Egypt</span
+            ><strong dir="ltr">A different<br />point of view.</strong>
+          </div>
+          <span class="art-stamp" aria-hidden="true">EXPLORE<br />MORE ↗</span>
+        </div>
+      </section>
+      <div class="ticker" aria-hidden="true">
+        <div class="wrap">
+          Remarkable places <span>✳</span> Thoughtful journeys
+          <span>✳</span> A fresh perspective <span>✳</span> Your next chapter
+        </div>
+      </div>
+      <section
+        class="explore wrap"
+        id="explore"
+        aria-labelledby="explore-title"
+      >
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">FIND YOUR NEXT EXPERIENCE</p>
+            <h2 id="explore-title">Where will curiosity take you?</h2>
+          </div>
+          <p>Explore the Planit tour collection.</p>
+        </div>
+        <form class="filters" id="filters" role="search">
+          <label class="search-field"
+            ><span>Search loaded experiences</span
+            ><input
+              name="query"
+              id="query"
+              type="search"
+              placeholder="Tour name or destination"
+              maxlength="100"
+          /></label>
+          <label
+            ><span>Activity level</span
+            ><select name="difficulty" id="difficulty">
+              <option value="">All levels</option>
+              <option value="easy">Easy</option>
+              <option value="medium">Moderate</option>
+              <option value="difficult">Challenging</option>
+            </select></label
+          >
+          <label
+            ><span>Sort by</span
+            ><select name="sort" id="sort">
+              <option value="price">Price: low to high</option>
+              <option value="-price">Price: high to low</option>
+              <option value="duration">Duration: shortest first</option>
+            </select></label
+          >
+          <button class="button primary" type="submit">
+            Find experiences <span aria-hidden="true">→</span>
+          </button>
+        </form>
+        <div class="results-bar">
+          <p id="result-count" aria-live="polite">Finding experiences…</p>
+          <span class="demo-label"
+            >Preview collection · Sample tours are marked “Demo”</span
+          >
+        </div>
+        <div id="status" class="status" role="status">Loading experiences…</div>
+        <button id="retry" class="button secondary" type="button" hidden>
+          Try again
+        </button>
+        <div class="tour-grid" id="tour-grid" aria-busy="true"></div>
+        <button
+          id="load-more"
+          class="button secondary load-more"
+          type="button"
+          hidden
+        >
+          Load more experiences
+        </button>
+      </section>
+      <section class="how wrap" id="how">
+        <div>
+          <p class="eyebrow">LESS PLANNING. MORE POSSIBILITY.</p>
+          <h2>Great journeys start<br />with a little curiosity.</h2>
+        </div>
+        <div class="steps">
+          <article>
+            <span>01</span>
+            <h3>Find your inspiration</h3>
+            <p>Discover experiences that fit your interests and schedule.</p>
+          </article>
+          <article>
+            <span>02</span>
+            <h3>Explore the details</h3>
+            <p>Compare prices, duration, and activity levels at a glance.</p>
+          </article>
+          <article>
+            <span>03</span>
+            <h3>Plan what comes next</h3>
+            <p>
+              Online booking is coming soon. For now, explore the collection.
+            </p>
+          </article>
+        </div>
+      </section>
+    </main>
+    <footer class="wrap">
+      <a class="brand" href="/" dir="ltr">planit<span>↗</span></a>
+      <p>A different way to discover Egypt.</p>
+      <span>Made for the curious.</span>
+    </footer>
+    <dialog id="tour-dialog" aria-labelledby="dialog-title">
+      <button
+        class="close-dialog"
+        id="close-dialog"
+        type="button"
+        aria-label="Close tour details"
+      >
+        ×
+      </button>
+      <div id="dialog-content"></div>
+    </dialog>
+  </body>
+</html>

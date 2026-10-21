@@ -50,6 +50,21 @@ test('unknown routes return an operational 404 without a configured NODE_ENV', a
   assert.equal((await response.json()).status, 'fail');
 });
 
+test('frontend and API metadata are served separately with security headers', async () => {
+  const response = await fetch(baseUrl);
+  assert.equal(response.status, 200);
+  assert.match(response.headers.get('content-type'), /text\/html/);
+  assert.match(await response.text(), /id="tour-grid"/);
+  assert.ok(response.headers.get('content-security-policy'));
+  const metadata = await fetch(`${baseUrl}/api/v1`);
+  assert.equal((await metadata.json()).message, 'Planit API');
+});
+
+test('health endpoints distinguish a live app from database readiness', async () => {
+  assert.equal((await fetch(`${baseUrl}/health/live`)).status, 200);
+  assert.equal((await fetch(`${baseUrl}/health/ready`)).status, 503);
+});
+
 test('search rejects missing and oversized queries', async () => {
   for (const suffix of ['', `?q=${'a'.repeat(101)}`]) {
     const response = await fetch(`${baseUrl}/api/v1/search${suffix}`);

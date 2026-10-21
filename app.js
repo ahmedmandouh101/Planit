@@ -1,4 +1,5 @@
 const path = require('path');
+const mongoose = require('mongoose');
 const express = require('express');
 const morgan = require('morgan');
 const rateLimit = require('express-rate-limit');
@@ -30,6 +31,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 // Set security http headers
 app.use(helmet());
+app.use(express.static(path.join(__dirname, 'frontend')));
 
 // it's a logging middleware
 if (process.env.NODE_ENV === 'development') {
@@ -73,8 +75,17 @@ app.use((req, res, next) => {
   next();
 });
 
-app.get('/', (req, res) => {
+app.get('/api/v1', (req, res) => {
   res.status(200).json({ status: 'success', message: 'Planit API', version: 'v1' });
+});
+
+app.get('/health/live', (req, res) => {
+  res.status(200).json({ status: 'ok' });
+});
+
+app.get('/health/ready', (req, res) => {
+  const ready = mongoose.connection.readyState === 1;
+  res.status(ready ? 200 : 503).json({ status: ready ? 'ready' : 'unavailable' });
 });
 
 app.use('/api/v1/tours', tourRouter);

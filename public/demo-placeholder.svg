@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="800" height="500" viewBox="0 0 800 500">
+  <rect width="800" height="500" fill="#143d39"/>
+  <path d="M0 400 240 150 410 330 540 210 800 450V500H0Z" fill="#c9a66b"/>
+  <text x="400" y="85" text-anchor="middle" font-family="sans-serif" font-size="36" fill="#fff">PLANIT · DEMO</text>
+</svg>

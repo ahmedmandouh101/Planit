@@ -4,6 +4,7 @@
 
 This repository is being modernized. It is not ready for production payments.
 See [the roadmap](docs/ROADMAP.md) for the planned milestones.
+See [local development](docs/LOCAL_DEVELOPMENT.md) for commands and verification.
 
 ### Local setup
 
@@ -14,6 +15,18 @@ See [the roadmap](docs/ROADMAP.md) for the planned milestones.
 5. Run `npm run dev` for development or `npm start` for normal startup.
 6. Run `npm test` for regression tests. These mock database and email boundaries; real service integration is still pending.
 
+Alternatively, run `npm run setup:local` to generate a private `.env` with a random
+JWT secret and create the upload directories. Existing `.env` files are preserved.
+Configure MongoDB and SMTP in that file, then run `npm run seed:demo` to add
+fictional tours and places to your development database. Seeding requires
+`NODE_ENV=development`; it does not delete records or replace existing names.
+Use a dedicated development database, never your production database.
+Demo tour images use `/demo-placeholder.svg` as their display URL.
+
+`GET /health/live` checks that the HTTP app responds. `GET /health/ready` returns
+200 when Mongoose is connected and 503 otherwise. These endpoints do not verify
+SMTP or Stripe availability.
+
 Set `NODE_ENV=production` through the hosting environment for deployment.
 Stripe is optional at startup; checkout returns 503 until `STRIPE_SECRET_KEY` is configured.
 Payment confirmation via verified webhooks is still pending. Do not use real payments yet.
@@ -21,7 +34,12 @@ Image uploads currently require writable `public/img/users` and `public/img/tour
 Create those directories before testing uploads. Persistent object storage is planned.
 Keep `.env` and `config.env` private. Existing `config.env` setups remain supported.
 
-The root URL returns API metadata. Protected routes use `Authorization: Bearer <token>`.
+The root URL serves the English tour browser from `frontend/`. It uses native
+HTML, CSS, and JavaScript with no build step. It fetches real tours and their
+details from the same-origin API, supports difficulty filters, sorting, and
+pagination. Text search filters the currently loaded results. API metadata is
+available at `/api/v1`. Booking and authentication screens are not implemented yet.
+Protected routes use `Authorization: Bearer <token>`.
 Cookies are issued, but cookie-based authentication and token revocation on logout are not implemented.
 
 ---

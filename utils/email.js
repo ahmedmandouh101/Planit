@@ -5,7 +5,7 @@ module.exports = class Email {
     this.to = user.email;
     this.firstName = user.name.split(' ')[0];
     this.url = url;
-    this.from = `Ahmed <${process.env.EMAIL_FROM}>`;
+    this.from = `Planit <${process.env.EMAIL_FROM}>`;
   }
 
   newTransport() {
@@ -20,14 +20,20 @@ module.exports = class Email {
       });
     }
     // Nodemailer
-    return nodemailer.createTransport({
+    const options = {
       host: process.env.EMAIL_HOST,
-      port: process.env.EMAIL_PORT,
-      auth: {
+      port: Number(process.env.EMAIL_PORT || 1025),
+      secure: process.env.EMAIL_SECURE === 'true',
+      connectionTimeout: 10000,
+      socketTimeout: 10000,
+    };
+    if (process.env.EMAIL_USERNAME && process.env.EMAIL_PASSWORD) {
+      options.auth = {
         user: process.env.EMAIL_USERNAME,
         pass: process.env.EMAIL_PASSWORD,
-      },
-    });
+      };
+    }
+    return nodemailer.createTransport(options);
   }
 
   async send(subject, htmlContent, textContent) {
@@ -44,9 +50,9 @@ module.exports = class Email {
 
   async sendWelcome() {
     // Define the content for the welcome email
-    const subject = 'Welcome to the TourMe Family!';
-    const htmlContent = `<p>Hello, <strong>${this.firstName}</strong>!</p><p>Welcome to the TourMe Family! Click <a href="${this.url}">here</a> to access your account.</p>`;
-    const textContent = `Hello, ${this.firstName}!\n\nWelcome to the TourMe Family! Click ${this.url} to access your account.`;
+    const subject = 'Welcome to Planit!';
+    const htmlContent = `<p>Welcome to Planit!</p><p>Your account is ready. Sign in to start planning your next trip.</p>`;
+    const textContent = 'Welcome to Planit! Your account is ready. Sign in to start planning your next trip.';
 
     // Send the welcome email
     await this.send(subject, htmlContent, textContent);
@@ -55,7 +61,7 @@ module.exports = class Email {
   async sendPasswordReset() {
     // Define the content for the password reset email
     const subject = 'Your password reset token (valid for only 10 minutes)';
-    const htmlContent = `<p>Hello, <strong>${this.firstName}</strong>!</p><p>Your password reset token is: ${this.url}</p><p>This token is valid for only 10 minutes.</p>`;
+    const htmlContent = `<p>Hello from Planit!</p><p>Your password reset URL is: ${this.url}</p><p>This token is valid for only 10 minutes.</p>`;
     const textContent = `Hello, ${this.firstName}!\n\nYour password reset token is: ${this.url}\n\nThis token is valid for only 10 minutes.`;
 
     // Send the password reset email
