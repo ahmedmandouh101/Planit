@@ -2,29 +2,8 @@ name: API checks
 on: [push, pull_request]
 jobs:
   test:
-    runs-on: ubuntu-latest
-    services:
-      mailpit:
-        image: axllent/mailpit:v1.31.6
-        ports:
-          - 1025:1025
-          - 8025:8025
-        options: >-
-          --health-cmd "/mailpit readyz"
-          --health-start-period 10s
-          --health-interval 5s
-          --health-timeout 5s
-          --health-retries 12
-      mongodb:
-        image: mongo:8.0
-        ports:
-          - 27017:27017
-        options: >-
-          --health-cmd "mongosh --host 127.0.0.1 --quiet --eval 'quit(db.adminCommand({ping:1}).ok ? 0 : 1)'"
-          --health-start-period 20s
-          --health-interval 10s
-          --health-timeout 10s
-          --health-retries 12
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -33,5 +12,30 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm test
+      - name: Start integration services
+        run: |
+          docker run --detach --name planit-mongodb --publish 127.0.0.1:27017:27017 mongo:8.0
+          docker run --detach --name planit-mailpit --publish 127.0.0.1:1025:1025 --publish 127.0.0.1:8025:8025 axllent/mailpit:v1.31.6
+      - name: Wait for integration services
+        timeout-minutes: 3
+        run: |
+          for attempt in {1..30}; do
+            if docker exec planit-mongodb mongosh --host 127.0.0.1 --quiet --eval 'quit(db.adminCommand({ping:1}).ok ? 0 : 1)' &&
+               docker exec planit-mailpit /mailpit readyz; then
+              exit 0
+            fi
+            sleep 2
+          done
+          echo "Integration services did not become ready"
+          exit 1
       - run: npm run test:integration
       - run: npm run test:mail
+      - name: Service diagnostics
+        if: failure()
+        run: |
+          docker ps --all
+          docker logs planit-mongodb || true
+          docker logs planit-mailpit || true
+      - name: Stop integration services
+        if: always()
+        run: docker rm --force planit-mongodb planit-mailpit || true
