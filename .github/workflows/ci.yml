@@ -36,6 +36,20 @@ jobs:
           docker ps --all
           docker logs planit-mongodb || true
           docker logs planit-mailpit || true
+          for service in planit-mongodb planit-mailpit; do
+            details=$(docker inspect --format '{{json .State}}' "$service" 2>&1)
+            echo "::error title=$service state::$details"
+          done
+          details=$(timeout 15s docker exec planit-mongodb mongosh --host 127.0.0.1 --quiet --eval 'quit(db.adminCommand({ping:1}).ok ? 0 : 1)' 2>&1) || true
+          details="${details//'%'/'%25'}"
+          details="${details//$'\n'/'%0A'}"
+          details="${details//$'\r'/'%0D'}"
+          echo "::error title=MongoDB readiness::$details"
+          details=$(docker logs --tail 10 planit-mongodb 2>&1)
+          details="${details//'%'/'%25'}"
+          details="${details//$'\n'/'%0A'}"
+          details="${details//$'\r'/'%0D'}"
+          echo "::error title=MongoDB startup::$details"
       - name: Stop integration services
         if: always()
         run: docker rm --force planit-mongodb planit-mailpit || true
