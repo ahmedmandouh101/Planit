@@ -70,7 +70,7 @@ const tourSchema = new mongoose.Schema(
     },
     createdAt: {
       type: Date,
-      default: Date.now(),
+      default: Date.now,
       select: false, // to not appear in api
     },
     startLocation: {

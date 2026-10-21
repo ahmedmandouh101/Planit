@@ -13,7 +13,7 @@ const bookingSchema = new mongoose.Schema({
   },
   createdAt: {
     type: Date,
-    default: Date.now(),
+    default: Date.now,
     // select: false
   },
   price: {
@@ -22,7 +22,7 @@ const bookingSchema = new mongoose.Schema({
   },
   paid: {
     type: Boolean,
-    default: true,
+    default: false,
   },
 });
 
@@ -31,6 +31,7 @@ bookingSchema.pre(/^find/, function (next) {
     path: 'tour',
     select: 'name',
   });
+  next();
 });
 
 const Booking = mongoose.model('Booking', bookingSchema);
