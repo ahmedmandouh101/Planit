@@ -18,6 +18,70 @@ let loaded = [];
 let selectedQuery = "";
 let selectedDifficulty = "";
 let selectedSort = "price";
+let savedOnly = false;
+let currentUser = null;
+let accountTours = [];
+let accountBusy = true;
+let hasMoreTours = false;
+let savedTours;
+try {
+  const stored = JSON.parse(localStorage.getItem("planit-saved") || "[]");
+  savedTours = new Set(
+    Array.isArray(stored)
+      ? stored.filter((identifier) => typeof identifier === "string")
+      : [],
+  );
+} catch {
+  savedTours = new Set();
+}
+const savedToggle = document.querySelector("#saved-toggle");
+const savedCount = document.querySelector("#saved-count");
+savedCount.textContent = savedTours.size;
+
+async function toggleSaved(tour, button) {
+  if (accountBusy) return;
+  const removing = savedTours.has(tour._id);
+  if (currentUser) {
+    accountBusy = true;
+    button.disabled = true;
+    try {
+      await accountRequest(
+        `/saved-tours/${encodeURIComponent(tour._id)}`,
+        removing ? "DELETE" : "PUT",
+      );
+      accountTours = removing
+        ? accountTours.filter((saved) => saved._id !== tour._id)
+        : [...accountTours, tour];
+    } catch (error) {
+      document.querySelector("#save-feedback").textContent = error.message;
+      button.disabled = false;
+      accountBusy = false;
+      return;
+    }
+    button.disabled = false;
+    accountBusy = false;
+  }
+  if (savedTours.has(tour._id)) savedTours.delete(tour._id);
+  else savedTours.add(tour._id);
+  try {
+    if (!currentUser)
+      localStorage.setItem("planit-saved", JSON.stringify([...savedTours]));
+    document.querySelector("#save-feedback").textContent = savedTours.has(
+      tour._id,
+    )
+      ? currentUser
+        ? "Experience saved to your account."
+        : "Experience saved on this browser. Log in to save to an account."
+      : "Experience removed from saved.";
+  } catch {
+    document.querySelector("#save-feedback").textContent =
+      "Saved for this visit. Browser storage is unavailable.";
+  }
+  savedCount.textContent = savedTours.size;
+  button.textContent = savedTours.has(tour._id) ? "♥" : "♡";
+  button.setAttribute("aria-pressed", String(savedTours.has(tour._id)));
+  if (savedOnly) render();
+}
 
 function element(tag, className, text) {
   const node = document.createElement(tag);
@@ -61,6 +125,16 @@ function renderCard(tour) {
     image,
     element("span", "card-badge", levels[tour.difficulty] || "Experience"),
   );
+  const save = element(
+    "button",
+    "save-button",
+    savedTours.has(tour._id) ? "♥" : "♡",
+  );
+  save.type = "button";
+  save.setAttribute("aria-label", `Save ${tour.name}`);
+  save.setAttribute("aria-pressed", String(savedTours.has(tour._id)));
+  save.addEventListener("click", () => toggleSaved(tour, save));
+  visual.append(save);
   const body = element("div", "card-body");
   body.append(
     element(
@@ -101,17 +175,29 @@ function renderCard(tour) {
 
 function render() {
   const query = selectedQuery.toLocaleLowerCase();
-  const visible = loaded.filter((tour) =>
-    `${tour.name} ${tour.startLocation?.address || ""}`
-      .toLocaleLowerCase()
-      .includes(query),
+  const visible = (savedOnly && currentUser ? accountTours : loaded).filter(
+    (tour) =>
+      (!savedOnly || savedTours.has(tour._id)) &&
+      (!selectedDifficulty || tour.difficulty === selectedDifficulty) &&
+      `${tour.name} ${tour.startLocation?.address || ""}`
+        .toLocaleLowerCase()
+        .includes(query),
   );
+  const sortField = selectedSort.replace("-", "");
+  visible.sort(
+    (first, second) =>
+      (first[sortField] - second[sortField]) *
+      (selectedSort.startsWith("-") ? -1 : 1),
+  );
+  loadMore.hidden = !hasMoreTours || (savedOnly && Boolean(currentUser));
   grid.replaceChildren(...visible.map(renderCard));
   count.textContent = `${visible.length} ${visible.length === 1 ? "experience" : "experiences"} found`;
   status.hidden = visible.length > 0;
-  status.textContent = selectedQuery
-    ? "No matching experiences in the loaded results. Try another destination or load more tours."
-    : "No experiences match these filters. Try a different activity level.";
+  status.textContent = savedOnly
+    ? "No saved experiences in these results. Save a tour with the heart button, or load more experiences."
+    : selectedQuery
+      ? "No matching experiences in the loaded results. Try another destination or load more tours."
+      : "No experiences match these filters. Try a different activity level.";
 }
 
 async function loadTours(append = false) {
@@ -134,8 +220,8 @@ async function loadTours(append = false) {
     const result = await api(`/api/v1/tours?${params}`);
     if (version !== requestVersion) return;
     loaded.push(...result.data.data);
+    hasMoreTours = result.results === limit;
     render();
-    loadMore.hidden = result.results < limit;
   } catch (error) {
     if (version !== requestVersion) return;
     loadMore.hidden = true;
@@ -229,4 +315,167 @@ loadMore.addEventListener("click", () => {
   page += 1;
   loadTours(true);
 });
-loadTours();
+savedToggle.addEventListener("click", () => {
+  savedOnly = !savedOnly;
+  savedToggle.setAttribute("aria-pressed", String(savedOnly));
+  render();
+  document.querySelector("#explore").scrollIntoView({ behavior: "auto" });
+});
+const accountButton = document.querySelector("#account-button");
+const logoutButton = document.querySelector("#logout-button");
+const authDialog = document.querySelector("#auth-dialog");
+const authForm = document.querySelector("#auth-form");
+const authMessage = document.querySelector("#auth-message");
+const authSubmit = document.querySelector("#auth-submit");
+let signupMode = false;
+
+async function accountRequest(path, method = "GET", body) {
+  const response = await fetch(`/api/v1/users${path}`, {
+    method,
+    credentials: "same-origin",
+    headers: body ? { "Content-Type": "application/json" } : {},
+    body: body ? JSON.stringify(body) : undefined,
+    signal: AbortSignal.timeout(15000),
+  });
+  const result = await response.json();
+  if (!response.ok) {
+    const error = new Error(
+      result.message || "Something went wrong. Please try again.",
+    );
+    error.status = response.status;
+    throw error;
+  }
+  return result;
+}
+
+function updateAccount() {
+  accountButton.textContent = currentUser
+    ? `Hi, ${currentUser.name.split(" ")[0]}`
+    : "Log in / Sign up";
+  logoutButton.hidden = !currentUser;
+  savedCount.textContent = savedTours.size;
+  render();
+}
+
+async function restoreAccount(strict = false) {
+  try {
+    const profile = await accountRequest("/me");
+    const saved = await accountRequest("/saved-tours");
+    currentUser = profile.data.data;
+    accountTours = saved.data.tours;
+    savedTours = new Set(accountTours.map((tour) => tour._id));
+  } catch (error) {
+    if (strict) throw error;
+    if (error.status !== 401)
+      document.querySelector("#save-feedback").textContent =
+        "Account could not be loaded. Refresh to try again.";
+  } finally {
+    accountBusy = false;
+    updateAccount();
+  }
+}
+
+accountButton.addEventListener("click", () => {
+  if (currentUser) {
+    savedOnly = true;
+    savedToggle.setAttribute("aria-pressed", "true");
+    render();
+    document.querySelector("#explore").scrollIntoView();
+    return;
+  }
+  authMessage.textContent = "";
+  authDialog.showModal();
+});
+document
+  .querySelector("#close-auth")
+  .addEventListener("click", () => authDialog.close());
+document.querySelector("#auth-switch").addEventListener("click", () => {
+  signupMode = !signupMode;
+  document.querySelector("#auth-title").textContent = signupMode
+    ? "Your journey starts here."
+    : "Welcome back.";
+  document.querySelector("#auth-description").textContent = signupMode
+    ? "Create an account to save experiences across your devices."
+    : "Log in to keep your favourite experiences together.";
+  document.querySelector("#name-field").hidden = !signupMode;
+  document.querySelector("#confirm-field").hidden = !signupMode;
+  document.querySelector("#auth-name").required = signupMode;
+  document.querySelector("#auth-confirm").required = signupMode;
+  document.querySelector("#auth-name").disabled = !signupMode;
+  document.querySelector("#auth-confirm").disabled = !signupMode;
+  document.querySelector("#auth-password").autocomplete = signupMode
+    ? "new-password"
+    : "current-password";
+  authSubmit.textContent = signupMode ? "Create account" : "Log in";
+  document.querySelector("#auth-switch").textContent = signupMode
+    ? "Already have an account? Log in"
+    : "New to Planit? Create an account";
+  authMessage.textContent = "";
+});
+
+authForm.addEventListener("submit", async (event) => {
+  event.preventDefault();
+  const fields = new FormData(authForm);
+  const body = {
+    email: fields.get("email").trim(),
+    password: fields.get("password"),
+  };
+  if (signupMode) {
+    body.name = fields.get("name").trim();
+    body.confirmPassword = fields.get("confirmPassword");
+    if (!body.name || body.password !== body.confirmPassword) {
+      authMessage.textContent = !body.name
+        ? "Please enter your name."
+        : "Passwords do not match.";
+      return;
+    }
+  }
+  authSubmit.disabled = true;
+  document.querySelector("#auth-switch").disabled = true;
+  accountBusy = true;
+  authMessage.textContent = "Connecting…";
+  try {
+    await accountRequest(signupMode ? "/signup" : "/login", "POST", body);
+    await restoreAccount(true);
+    authForm.reset();
+    authDialog.close();
+    document.querySelector("#save-feedback").textContent =
+      "You are logged in. Hearts now save to your account.";
+  } catch (error) {
+    authMessage.textContent = error.message;
+  } finally {
+    accountBusy = false;
+    authSubmit.disabled = false;
+    document.querySelector("#auth-switch").disabled = false;
+  }
+});
+
+logoutButton.addEventListener("click", async () => {
+  if (accountBusy) return;
+  accountBusy = true;
+  logoutButton.disabled = true;
+  try {
+    await accountRequest("/logout");
+    currentUser = null;
+    accountTours = [];
+    try {
+      const stored = JSON.parse(localStorage.getItem("planit-saved") || "[]");
+      savedTours = new Set(
+        Array.isArray(stored)
+          ? stored.filter((identifier) => typeof identifier === "string")
+          : [],
+      );
+    } catch {
+      savedTours = new Set();
+    }
+    updateAccount();
+    document.querySelector("#save-feedback").textContent =
+      "You are logged out.";
+  } catch (error) {
+    document.querySelector("#save-feedback").textContent = error.message;
+  } finally {
+    accountBusy = false;
+    logoutButton.disabled = false;
+  }
+});
+restoreAccount().then(() => loadTours());

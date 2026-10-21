@@ -13,6 +13,9 @@ router.patch('/resetPassword/:token', authController.resetPassword);
 
 // protect this routes after this middleware because they must be login
 router.use(authController.protect);
+router.get('/saved-tours', userController.getSavedTours);
+router.put('/saved-tours/:tourId', userController.saveTour);
+router.delete('/saved-tours/:tourId', userController.removeSavedTour);
 
 router.patch('/updateMyPassword', authController.updatePassword);
 router.get('/me', userController.getMe, userController.getUser);

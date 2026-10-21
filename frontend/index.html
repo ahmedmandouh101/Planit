@@ -20,9 +20,20 @@
       <nav aria-label="Main navigation">
         <a href="#explore">Experiences</a><a href="#how">How it works</a>
       </nav>
-      <a class="header-link" href="#explore"
-        >Explore Egypt <span aria-hidden="true">↗</span></a
-      >
+      <div class="account-actions">
+        <button id="account-button" class="account-button" type="button">
+          Log in / Sign up</button
+        ><button id="logout-button" class="account-button" type="button" hidden>
+          Log out</button
+        ><button
+          class="header-link"
+          id="saved-toggle"
+          type="button"
+          aria-pressed="false"
+        >
+          ♡ Saved <span id="saved-count">0</span>
+        </button>
+      </div>
     </header>
     <main>
       <section class="hero wrap" aria-labelledby="hero-title">
@@ -30,7 +41,7 @@
           <p class="eyebrow">
             <span class="dot"></span> A NEW PERSPECTIVE ON EGYPT
           </p>
-          <h1 id="hero-title">Go somewhere<br /><em>worth remembering.</em></h1>
+          <h1 id="hero-title">Egypt, beyond<br />the <em>ordinary.</em></h1>
           <p class="hero-description">
             From Cairo's historic streets to the timeless landscapes of
             Luxor.<br class="desktop-break" />
@@ -44,24 +55,30 @@
             memory.
           </div>
         </div>
-        <div
-          class="destination-art"
-          role="img"
-          aria-label="Illustration of Egyptian pyramids beneath a desert sun"
-        >
+        <div class="destination-art">
+          <img
+            class="hero-photo"
+            src="/images/giza.jpg"
+            alt="The pyramids of Giza rising above the Egyptian desert"
+            fetchpriority="high"
+            width="1800"
+            height="1200"
+          />
           <div class="art-topline">
             <span dir="ltr">EGYPT, THROUGH YOUR EYES</span
             ><span>26° NORTH</span>
           </div>
-          <div class="sun"></div>
-          <div class="pyramid pyramid-back"></div>
-          <div class="pyramid pyramid-front"></div>
-          <div class="dune"></div>
           <div class="art-caption">
-            <span>Rediscover Egypt</span
-            ><strong dir="ltr">A different<br />point of view.</strong>
+            <span>GIZA, EGYPT<br />29.9792° N · 31.1342° E</span
+            ><strong dir="ltr">Some places<br />stay with you.</strong>
           </div>
-          <span class="art-stamp" aria-hidden="true">EXPLORE<br />MORE ↗</span>
+          <a
+            class="photo-credit"
+            href="https://www.pexels.com/photo/pyramid-in-egypt-under-blue-sky-13979265/"
+            target="_blank"
+            rel="noreferrer"
+            >Photography · Pexels ↗</a
+          >
         </div>
       </section>
       <div class="ticker" aria-hidden="true">
@@ -162,8 +179,72 @@
     <footer class="wrap">
       <a class="brand" href="/" dir="ltr">planit<span>↗</span></a>
       <p>A different way to discover Egypt.</p>
-      <span>Made for the curious.</span>
+      <span
+        >Made for the curious.
+        <span id="save-feedback" role="status" aria-live="polite"></span
+      ></span>
     </footer>
+    <dialog id="auth-dialog" aria-labelledby="auth-title">
+      <button
+        type="button"
+        class="close-dialog"
+        id="close-auth"
+        aria-label="Close account window"
+      >
+        ×
+      </button>
+      <p class="eyebrow">YOUR NEXT CHAPTER</p>
+      <h2 id="auth-title">Welcome back.</h2>
+      <p id="auth-description">
+        Log in to keep your favourite experiences together.
+      </p>
+      <form id="auth-form" class="auth-form">
+        <label id="name-field" hidden
+          >Full name<input
+            id="auth-name"
+            name="name"
+            autocomplete="name"
+            maxlength="100"
+            disabled
+        /></label>
+        <label
+          >Email address<input
+            id="auth-email"
+            name="email"
+            type="email"
+            autocomplete="email"
+            required
+            maxlength="254"
+        /></label>
+        <label
+          >Password<input
+            id="auth-password"
+            name="password"
+            type="password"
+            autocomplete="current-password"
+            required
+            minlength="8"
+            maxlength="128"
+        /></label>
+        <label id="confirm-field" hidden
+          >Confirm password<input
+            id="auth-confirm"
+            name="confirmPassword"
+            type="password"
+            autocomplete="new-password"
+            minlength="8"
+            maxlength="128"
+            disabled
+        /></label>
+        <p id="auth-message" role="status" aria-live="polite"></p>
+        <button class="button primary" id="auth-submit" type="submit">
+          Log in
+        </button>
+        <button class="account-button" id="auth-switch" type="button">
+          New to Planit? Create an account
+        </button>
+      </form>
+    </dialog>
     <dialog id="tour-dialog" aria-labelledby="dialog-title">
       <button
         class="close-dialog"

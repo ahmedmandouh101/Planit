@@ -44,6 +44,19 @@ test('anonymous users cannot create or delete drivers', async () => {
   }
 });
 
+test('signup still authenticates a created account when welcome email delivery fails', async (context) => {
+  context.mock.method(User, 'create', async (input) => ({ ...input, _id: '507f1f77bcf86cd799439011', role: 'user' }));
+  context.mock.method(Email.prototype, 'sendWelcome', async () => { throw new Error('SMTP unavailable'); });
+  context.mock.method(console, 'warn', () => {});
+  const response = await fetch(`${baseUrl}/api/v1/users/signup`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ name: 'Test User', email: 'test@example.com', password: 'password123', confirmPassword: 'password123' }),
+  });
+  assert.equal(response.status, 201);
+  assert.ok((await response.json()).token);
+});
+
 test('unknown routes return an operational 404 without a configured NODE_ENV', async () => {
   const response = await fetch(`${baseUrl}/missing`);
   assert.equal(response.status, 404);

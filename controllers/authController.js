@@ -18,6 +18,7 @@ const createSendToken = (user, statusCode, res) => {
       Date.now() + process.env.JWT_COOKIE_EXPIRES_IN * 24 * 60 * 60 * 1000,
     ),
     httpOnly: true,
+    sameSite: 'strict',
   };
   if (process.env.NODE_ENV === 'production') cookiesOptions.secure = true;
   res.cookie('jwt', token, cookiesOptions);
@@ -43,7 +44,11 @@ exports.signup = catchAsync(async (req, res, next) => {
   });
 
   const url = `${req.protocol}://${req.get('host')}/api/v1/users/me`;
-  await new Email(newUser, url).sendWelcome();
+  try {
+    await new Email(newUser, url).sendWelcome();
+  } catch {
+    console.warn('Welcome email delivery failed after account creation.');
+  }
 
   createSendToken(newUser, 201, res);
 });
@@ -71,6 +76,8 @@ exports.logout = (req, res) => {
   res.cookie('jwt', 'loggedout', {
     expires: new Date(Date.now() + 10 * 1000),
     httpOnly: true,
+    sameSite: 'strict',
+    secure: process.env.NODE_ENV === 'production',
   });
   res.status(200).json({ status: 'success' });
 };
@@ -83,6 +90,12 @@ exports.protect = catchAsync(async (req, res, next) => {
     req.headers.authorization.startsWith('Bearer ')
   ) {
     token = req.headers.authorization.split(' ')[1];
+  }
+
+  if (!token) {
+    const cookie = (req.headers.cookie || '').split(';').find((part) => part.trim().startsWith('jwt='));
+    if (cookie) token = cookie.trim().slice(4);
+    if (token === 'loggedout') token = undefined;
   }
 
   if (!token) {

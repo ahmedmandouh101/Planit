@@ -1,8 +1,8 @@
 :root {
-  --paper: #faf8f2;
-  --ink: #153d35;
+  --paper: #fcfbf8;
+  --ink: #183c36;
   --muted: #68736a;
-  --accent: #d7ef78;
+  --accent: #e9ba78;
   --line: #dcded2;
   --white: #fff;
   font-family: Tahoma, Arial, sans-serif;
@@ -50,7 +50,7 @@ button {
   margin-inline: auto;
 }
 .site-header {
-  height: 104px;
+  height: 88px;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -74,19 +74,71 @@ button {
   font-size: 14px;
 }
 .header-link {
-  border-bottom: 1px solid var(--ink);
-  padding: 10px 0;
+  border: 1px solid var(--line);
+  border-radius: 30px;
+  background: transparent;
+  color: var(--ink);
+  padding: 11px 20px;
   font-size: 14px;
+}
+.account-actions {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+.account-button {
+  border: 0;
+  background: transparent;
+  color: var(--ink);
+  font-size: 13px;
+  padding: 10px 0;
+}
+.auth-form {
+  display: grid;
+  gap: 18px;
+}
+.auth-form label {
+  display: grid;
+  gap: 8px;
+  font-size: 13px;
+}
+.auth-form input {
+  width: 100%;
+  padding: 12px 14px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: white;
+  color: var(--ink);
+}
+.auth-form .primary {
+  justify-content: center;
+}
+#auth-message {
+  margin: 0;
+  color: #a0442c;
+}
+@media (max-width: 900px) {
+  .site-header nav {
+    display: none;
+  }
+}
+@media (max-width: 400px) {
+  .account-actions {
+    gap: 8px;
+  }
+  .account-button {
+    font-size: 11px;
+  }
 }
 .header-link span {
   margin-inline-start: 20px;
 }
 .hero {
   display: grid;
-  grid-template-columns: 1.1fr 1fr;
-  gap: 72px;
+  grid-template-columns: 0.95fr 1.2fr;
+  gap: 52px;
   align-items: center;
-  padding-block: 62px 70px;
+  padding-block: 42px 54px;
 }
 .eyebrow {
   font-size: 12px;
@@ -138,7 +190,7 @@ h1 em:after {
   gap: 28px;
   min-height: 50px;
   border: 0;
-  border-radius: 5px;
+  border-radius: 30px;
   padding: 14px 23px;
   font-size: 14px;
   font-weight: bold;
@@ -173,22 +225,47 @@ button:disabled {
 }
 .destination-art {
   position: relative;
-  min-height: 440px;
+  min-height: 510px;
   overflow: hidden;
   background: #e4b779;
-  border-radius: 180px 180px 8px 8px;
+  border-radius: 18px;
   color: #3f382a;
   isolation: isolate;
 }
+.hero-photo {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+}
+.destination-art::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, #102d3426, transparent 35%, #142b35b8);
+  pointer-events: none;
+}
+.photo-credit {
+  position: absolute;
+  bottom: 12px;
+  left: 30px;
+  color: #ffffffbd;
+  font-size: 9px;
+  z-index: 3;
+}
 .art-topline {
   position: absolute;
-  top: 55px;
+  top: 28px;
   left: 35px;
   right: 35px;
   display: flex;
   justify-content: space-between;
   font-size: 9px;
   letter-spacing: 1px;
+  color: white;
+  z-index: 2;
 }
 .sun {
   position: absolute;
@@ -231,7 +308,7 @@ button:disabled {
 }
 .art-caption {
   position: absolute;
-  bottom: 28px;
+  bottom: 45px;
   left: 30px;
   right: 30px;
   display: flex;
@@ -242,6 +319,7 @@ button:disabled {
 }
 .art-caption span {
   font-size: 11px;
+  line-height: 1.8;
 }
 .art-caption strong {
   font:
@@ -266,7 +344,7 @@ button:disabled {
 }
 .ticker {
   border-block: 1px solid var(--line);
-  background: #f0f0e5;
+  background: #f3f1e9;
 }
 .ticker .wrap {
   display: flex;
@@ -306,8 +384,9 @@ h2 {
   gap: 16px;
   border: 1px solid var(--line);
   padding: 20px;
-  border-radius: 8px;
-  background: #fffdf7;
+  border-radius: 14px;
+  background: white;
+  box-shadow: 0 8px 32px #183c3606;
 }
 .filters label {
   min-width: 0;
@@ -355,9 +434,37 @@ h2 {
 }
 .tour-card {
   border: 1px solid var(--line);
-  border-radius: 9px;
+  border-radius: 16px;
   overflow: hidden;
   background: var(--white);
+  transition:
+    transform 180ms ease,
+    box-shadow 180ms ease;
+}
+.tour-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 16px 40px #183c3610;
+}
+.save-button {
+  position: absolute;
+  top: 14px;
+  left: 14px;
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border: 0;
+  border-radius: 50%;
+  background: white;
+  color: var(--ink);
+  font-size: 25px;
+}
+.save-button[aria-pressed="true"] {
+  color: #bd593f;
+}
+.header-link[aria-pressed="true"] {
+  background: var(--ink);
+  color: white;
 }
 .card-image {
   height: 210px;
@@ -567,6 +674,13 @@ dialog p {
   }
   .hero {
     gap: 30px;
+    grid-template-columns: 1fr;
+  }
+  .hero-copy {
+    max-width: 620px;
+  }
+  .art-caption strong {
+    font-size: 32px;
   }
   .destination-art {
     min-height: 380px;
@@ -601,10 +715,18 @@ dialog p {
     font-size: 33px;
   }
   .site-header nav {
-    gap: 15px;
+    gap: 12px;
     font-size: 11px;
   }
   .header-link {
+    display: inline-flex;
+    padding: 9px 12px;
+    font-size: 12px;
+  }
+  .header-link span {
+    margin-inline-start: 8px;
+  }
+  .site-header nav a:last-child {
     display: none;
   }
   .hero {
@@ -630,7 +752,7 @@ dialog p {
     max-width: 440px;
     width: 100%;
     margin: auto;
-    border-radius: 150px 150px 8px 8px;
+    border-radius: 16px;
   }
   .art-topline {
     top: 45px;
@@ -729,6 +851,7 @@ h1 {
 }
 h1 em {
   font-style: italic;
+  color: #a8743f;
 }
 h1 em:after {
   height: 5px;

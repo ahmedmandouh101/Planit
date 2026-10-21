@@ -2,6 +2,8 @@
 const multer = require('multer');
 const sharp = require('sharp');
 const User = require('../model/userModel');
+const mongoose = require('mongoose');
+const Tour = require('../model/tourModel');
 const catchAsync = require('../utils/catchAsync');
 const AppError = require('../utils/AppError');
 const factory = require('./handlerFactory');
@@ -60,6 +62,25 @@ exports.getMe = (req, res, next) => {
   req.params.id = req.user.id;
   next();
 };
+
+exports.getSavedTours = catchAsync(async (req, res) => {
+  const user = await User.findById(req.user.id).select('+savedTours').populate('savedTours');
+  res.status(200).json({ status: 'success', data: { tours: user.savedTours } });
+});
+
+exports.saveTour = catchAsync(async (req, res, next) => {
+  if (!mongoose.isObjectIdOrHexString(req.params.tourId)) return next(new AppError('Invalid tour ID', 400));
+  const tour = await Tour.findById(req.params.tourId);
+  if (!tour) return next(new AppError('Tour not found', 404));
+  await User.findByIdAndUpdate(req.user.id, { $addToSet: { savedTours: tour.id } });
+  res.status(200).json({ status: 'success' });
+});
+
+exports.removeSavedTour = catchAsync(async (req, res, next) => {
+  if (!mongoose.isObjectIdOrHexString(req.params.tourId)) return next(new AppError('Invalid tour ID', 400));
+  await User.findByIdAndUpdate(req.user.id, { $pull: { savedTours: req.params.tourId } });
+  res.status(200).json({ status: 'success' });
+});
 
 exports.updateMe = catchAsync(async (req, res, next) => {
   // 1) Create error if user POSTs password data

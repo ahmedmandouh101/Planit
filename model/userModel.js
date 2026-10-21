@@ -19,6 +19,11 @@ const userSchema = new mongoose.Schema({
     type: String,
     default: 'default.jpg',
   },
+  savedTours: {
+    type: [{ type: mongoose.Schema.ObjectId, ref: 'Tour' }],
+    select: false,
+    default: [],
+  },
   role: {
     // authorization with roles
     type: String,
