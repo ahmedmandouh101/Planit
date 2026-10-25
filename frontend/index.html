@@ -11,6 +11,7 @@
     <link rel="stylesheet" href="/styles.css" />
     <script src="/app.js" defer></script>
     <script src="/recovery.js" defer></script>
+    <script src="/bookings.js" defer></script>
   </head>
   <body>
     <a class="skip-link" href="#explore">Skip to experiences</a>
@@ -22,6 +23,9 @@
         <a href="#explore">Experiences</a><a href="#how">How it works</a>
       </nav>
       <div class="account-actions">
+        <button id="my-bookings" class="account-button" type="button" hidden>
+          My bookings
+        </button>
         <button id="account-button" class="account-button" type="button">
           Log in / Sign up</button
         ><button id="logout-button" class="account-button" type="button" hidden>
@@ -171,7 +175,8 @@
             <span>03</span>
             <h3>Plan what comes next</h3>
             <p>
-              Online booking is coming soon. For now, explore the collection.
+              Request your preferred date and keep track of it in My bookings.
+              Payments are coming next.
             </p>
           </article>
         </div>
@@ -308,6 +313,30 @@
           Back to login
         </button>
       </div>
+    </dialog>
+    <dialog id="bookings-dialog" aria-labelledby="bookings-title">
+      <button
+        class="close-dialog"
+        id="close-bookings"
+        type="button"
+        aria-label="Close my bookings"
+      >
+        ×
+      </button>
+      <p class="eyebrow">YOUR NEXT ADVENTURES</p>
+      <h2 id="bookings-title">My bookings</h2>
+      <p>
+        Pending requests are unpaid and do not confirm availability or reserve
+        seats.
+      </p>
+      <p id="bookings-message" role="status" aria-live="polite"></p>
+      <div id="bookings-list"></div>
+      <button id="bookings-more" class="button secondary" type="button" hidden>
+        Load more bookings
+      </button>
+      <button id="bookings-retry" class="button secondary" type="button" hidden>
+        Try again
+      </button>
     </dialog>
     <dialog id="tour-dialog" aria-labelledby="dialog-title">
       <button

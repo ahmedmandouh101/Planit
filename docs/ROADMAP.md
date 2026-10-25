@@ -10,6 +10,8 @@
 
 ## 2. Booking domain
 
+Delivered: server-priced pending requests, date/guest validation, idempotent submission, owner history and cancellation, and real MongoDB tests. See [booking rules](BOOKINGS.md). Requests do not yet reserve seats or confirm availability.
+
 - Model tour departures, capacity, travelers, and booking status.
 - Calculate prices on the server and prevent overbooking.
 - Complete Stripe webhook signature verification and idempotent payment processing.

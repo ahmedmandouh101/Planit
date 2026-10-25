@@ -9,6 +9,7 @@
     "test": "node --test tests/*.test.js",
     "test:integration": "node --test integration/auth.js",
     "test:mail": "node --test integration/mail.js",
+    "test:bookings": "node --test integration/bookings.js",
     "setup:local": "node scripts/setup-local.js",
     "seed:demo": "node scripts/seed.js",
     "mail:local": "node scripts/mail-local.js"

@@ -28,4 +28,4 @@ The API returns the same success message for registered and unknown email addres
 
 `npm run test:mail` checks the real email link, trusted origin despite a spoofed Host header, hashed tokens, password validation, expiry, simultaneous reuse, old-session rejection, and the new authenticated cookie. `npm test` also checks input validation and recovery request limits.
 
-Next: booking dates and checkout. Deployment needs HTTPS for production cookies.
+Booking requests and owner cancellation are available; see [booking rules](BOOKINGS.md). Next: shared departure inventory and verified payment checkout. Deployment needs HTTPS for production cookies.

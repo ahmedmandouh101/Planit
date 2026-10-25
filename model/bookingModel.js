@@ -20,14 +20,25 @@ const bookingSchema = new mongoose.Schema({
     type: Number,
     required: [true, 'Booking must have a price'],
   },
+  departureDate: { type: Date, required: true },
+  guests: { type: Number, required: true, min: 1, validate: Number.isInteger },
+  unitPrice: { type: Number, required: true, min: 0 },
+  currency: { type: String, enum: ['USD'], default: 'USD' },
+  tourName: { type: String, required: true },
+  status: { type: String, enum: ['pending', 'cancelled'], default: 'pending' },
+  cancelledAt: Date,
+  requestId: String,
   paid: {
     type: Boolean,
     default: false,
   },
 });
+bookingSchema.index({ user: 1, requestId: 1 }, { unique: true, partialFilterExpression: { requestId: { $type: 'string' } } });
+bookingSchema.index({ user: 1, tour: 1, departureDate: 1 }, { unique: true, partialFilterExpression: { status: 'pending' } });
+bookingSchema.index({ user: 1, createdAt: -1, _id: -1 });
 
 bookingSchema.pre(/^find/, function (next) {
-  this.populate('user').populate({
+  this.populate({
     path: 'tour',
     select: 'name',
   });

@@ -29,7 +29,8 @@ mongoose
   .connect(process.env.DATABASE_LOCAL || process.env.DATABASE, {
     // .connect(DB, { //if you wanna connect on the local database
   })
-  .then(() => {
+  .then(async () => {
+    await mongoose.model('Booking').init();
     console.log('Database connection successful!');
     const port = process.env.PORT || 3000;
     server = app.listen(port, () => console.log(`App running on port ${port}...`));

@@ -110,6 +110,44 @@ button {
   background: white;
   color: var(--ink);
 }
+.auth-form select {
+  width: 100%;
+  padding: 12px 14px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: white;
+  color: var(--ink);
+}
+.booking-panel {
+  border-top: 1px solid var(--line);
+  padding-top: 20px;
+  margin-top: 24px;
+}
+.booking-total {
+  font-weight: 600;
+}
+.my-booking {
+  padding: 22px 0;
+  border-bottom: 1px solid var(--line);
+}
+.my-booking small {
+  display: block;
+  color: var(--muted);
+  overflow-wrap: anywhere;
+  margin-bottom: 16px;
+}
+.booking-state {
+  font-weight: 600;
+}
+.booking-success {
+  padding: 16px;
+  background: #eaf0db;
+  border-radius: 8px;
+}
+.account-actions {
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
 .auth-form .primary {
   justify-content: center;
 }

@@ -35,6 +35,7 @@ jobs:
           echo "Integration services did not become ready"
           exit 1
       - run: npm run test:integration
+      - run: npm run test:bookings
       - run: npm run test:mail
       - name: Service diagnostics
         if: failure()

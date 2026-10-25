@@ -100,7 +100,8 @@ function price(value) {
   return new Intl.NumberFormat("en-US", {
     style: "currency",
     currency: "USD",
-    maximumFractionDigits: 0,
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 2,
   }).format(value);
 }
 
@@ -283,9 +284,10 @@ async function showDetails(identifier) {
       element(
         "p",
         "booking-note",
-        "Explore now, travel later. Online booking and payments are not available yet.",
+        "Submit an unpaid booking request below. Availability and seats are not confirmed. Online payments are coming next.",
       ),
     );
+    content.append(createBookingForm(tour));
   } catch {
     if (version === detailVersion && dialog.open) {
       const errorTitle = element("h2", "", "Tour details unavailable");
@@ -353,6 +355,8 @@ function updateAccount() {
     ? `Hi, ${currentUser.name.split(" ")[0]}`
     : "Log in / Sign up";
   logoutButton.hidden = !currentUser;
+  document.querySelector("#my-bookings").hidden = !currentUser;
+  document.dispatchEvent(new Event("planit:account-change"));
   savedCount.textContent = savedTours.size;
   render();
 }

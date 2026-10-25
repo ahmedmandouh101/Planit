@@ -11,9 +11,9 @@ See [local development](docs/LOCAL_DEVELOPMENT.md) for commands and verification
 1. Use Node.js 22 and install dependencies with `npm ci`.
 2. Copy `.env.example` to `.env` and set `JWT_SECRET` to a random secret of at least 32 characters.
 3. Start MongoDB and set `DATABASE_LOCAL` (or `DATABASE` for a hosted connection).
-4. Configure SMTP for signup welcome messages and password resets. Signup currently awaits email delivery.
+4. Configure SMTP for welcome messages and password recovery. Run `npm run mail:local` to capture development email in Mailpit.
 5. Run `npm run dev` for development or `npm start` for normal startup.
-6. Run `npm test` for regression tests. These mock database and email boundaries; real service integration is still pending.
+6. Run `npm test` for regression tests. With MongoDB and Mailpit running, also run `npm run test:integration`, `npm run test:bookings`, and `npm run test:mail` for real-service integration tests.
 
 Alternatively, run `npm run setup:local` to generate a private `.env` with a random
 JWT secret and create the upload directories. Existing `.env` files are preserved.
@@ -28,8 +28,8 @@ Demo tour images use `/demo-placeholder.svg` as their display URL.
 SMTP or Stripe availability.
 
 Set `NODE_ENV=production` through the hosting environment for deployment.
-Stripe is optional at startup; checkout returns 503 until `STRIPE_SECRET_KEY` is configured.
-Payment confirmation via verified webhooks is still pending. Do not use real payments yet.
+The current booking flow creates unpaid, pending requests. It does not reserve seats or confirm availability.
+The legacy checkout route has been removed until booking-linked payments and verified webhooks are implemented. Do not use real payments yet.
 Image uploads currently require writable `public/img/users` and `public/img/tours` directories.
 Create those directories before testing uploads. Persistent object storage is planned.
 Keep `.env` and `config.env` private. Existing `config.env` setups remain supported.
@@ -38,9 +38,10 @@ The root URL serves the English tour browser from `frontend/`. It uses native
 HTML, CSS, and JavaScript with no build step. It fetches real tours and their
 details from the same-origin API, supports difficulty filters, sorting, and
 pagination. Text search filters the currently loaded results. API metadata is
-available at `/api/v1`. Booking and authentication screens are not implemented yet.
-Protected routes use `Authorization: Bearer <token>`.
-Cookies are issued, but cookie-based authentication and token revocation on logout are not implemented.
+available at `/api/v1`. Signup, login, logout, password recovery, saved experiences, booking requests, and My bookings are implemented.
+Protected routes accept an HttpOnly session cookie or `Authorization: Bearer <token>`.
+Logout clears the browser cookie; password changes invalidate earlier sessions. Bearer tokens are not individually revoked on logout.
+See [accounts](docs/ACCOUNTS.md), [booking rules](docs/BOOKINGS.md), and [CI](docs/CI.md) for behavior and limitations.
 
 ---
 
