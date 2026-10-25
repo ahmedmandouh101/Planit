@@ -46,6 +46,7 @@ async function expireDeparture(identifier, session, now = new Date()) {
     departure: identifier,
     holdStatus: 'held',
     paid: false,
+    checkoutLocked: { $ne: true },
     holdExpiresAt: { $lte: now },
   }).session(session);
   if (!expired.length) return;
@@ -72,6 +73,7 @@ async function ownedBooking(identifier, user, session) {
 async function holdBooking(identifier, user) {
   return transaction(async (session) => {
     const booking = await ownedBooking(identifier, user, session);
+    if (booking.checkoutLocked) throw new AppError('A payment checkout is active. Continue or cancel checkout before changing the seat hold.', 409);
     if (
       booking.status !== 'pending' ||
       booking.paid ||
@@ -156,6 +158,7 @@ async function holdBooking(identifier, user) {
 async function releaseBooking(identifier, user, cancel = false) {
   return transaction(async (session) => {
     const booking = await ownedBooking(identifier, user, session);
+    if (booking.checkoutLocked) throw new AppError('Cancel payment checkout before releasing seats or cancelling this booking.', 409);
     if (cancel && booking.status === 'cancelled') return booking;
     if (
       booking.status !== 'pending' ||
@@ -190,6 +193,7 @@ async function expireAllHolds(filter = {}) {
     ...filter,
     holdStatus: 'held',
     paid: false,
+    checkoutLocked: { $ne: true },
     holdExpiresAt: { $lte: new Date() },
   })
     .select('departure')
@@ -222,6 +226,7 @@ function startExpiryWorker() {
 
 module.exports = {
   transaction,
+  decrement,
   expireDeparture,
   holdBooking,
   releaseBooking,

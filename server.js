@@ -19,8 +19,10 @@ process.env.JWT_SECRET_EXPIRES_IN ||= '7d';
 process.env.JWT_COOKIE_EXPIRES_IN ||= '7';
 const app = require('./app');
 const inventory = require('./utils/seatInventory');
+const payments = require('./utils/payments');
 let server;
 let stopExpiryWorker;
+let stopPaymentWorker;
 
 // const DB = process.env.DATABASE.replace(
 //   '<PASSWORD>',
@@ -34,10 +36,12 @@ mongoose
   .then(async () => {
     await mongoose.model('Booking').init();
     await mongoose.model('Departure').init();
+    await mongoose.model('PaymentAttempt').init();
     const topology = await mongoose.connection.db.admin().command({ hello: 1 });
     if (!topology.setName && topology.msg !== 'isdbgrid') throw new Error('MongoDB transactions require a replica set. Run npm run db:local and use port 27018.');
     await inventory.expireAllHolds();
     stopExpiryWorker = inventory.startExpiryWorker();
+    stopPaymentWorker = payments.startWorker();
     console.log('Database connection successful!');
     const port = process.env.PORT || 3000;
     server = app.listen(port, () => console.log(`App running on port ${port}...`));
@@ -55,6 +59,7 @@ process.on('unhandledRejection', (err) => {
 
 const shutdown = () => {
   if (stopExpiryWorker) stopExpiryWorker();
+  if (stopPaymentWorker) stopPaymentWorker();
   const timeout = setTimeout(() => process.exit(1), 10000);
   timeout.unref();
   if (server) server.close(() => mongoose.disconnect().then(() => process.exit(0)));

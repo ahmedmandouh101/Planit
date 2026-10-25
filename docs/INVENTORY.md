@@ -31,7 +31,7 @@ The departure's `reservedSeats` counter and booking hold metadata are updated in
 
 Expired unpaid holds are released transactionally before allocation and availability reads. A background worker also checks every 30 seconds, with startup recovery and owner-list cleanup. Correctness does not depend on an in-memory timer or a TTL deletion: requests clean up relevant expired holds before allocating seats, and booking history is retained. Cleanup can safely run on multiple API instances because conflicting transactions retry against the updated state.
 
-Seat holds do not currently authorize a charge or confirm a booking. Next, Stripe checkout must link to the booking/hold and verify signed payment webhooks, with explicit handling of payment-versus-expiry races and refunds. Do not enable real payments yet.
+Ordinary holds do not authorize a charge or confirm a booking. [Stripe test checkout](PAYMENTS.md) now links to the booking/hold and protects its allocation until provider-verified payment or expiration. Checkout-locked records are excluded from ordinary hold cleanup; confirmed paid allocations continue to count against capacity. Live payments remain blocked.
 
 ## Verification
 

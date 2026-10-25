@@ -284,7 +284,7 @@ async function showDetails(identifier) {
       element(
         "p",
         "booking-note",
-        "Submit an unpaid booking request below. Availability and seats are not confirmed. Online payments are coming next.",
+        "Submit an unpaid request below, then hold seats in My bookings. Stripe checkout uses test payments only when configured; no real payments are taken.",
       ),
     );
     content.append(createBookingForm(tour));

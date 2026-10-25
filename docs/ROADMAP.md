@@ -11,6 +11,7 @@
 ## 2. Booking domain
 
 Delivered: server-priced pending requests, date/guest validation, idempotent submission, owner history/cancellation, scheduled departure capacity, transactional temporary seat holds, expiry recovery, and real MongoDB concurrency/rollback tests. See [booking rules](BOOKINGS.md) and [inventory rules](INVENTORY.md). Requests alone do not reserve seats; explicit holds are temporary and unpaid.
+Implemented next: Stripe test checkout, raw-body signed webhooks, idempotent confirmation, protected checkout allocation, reconciliation, and late-payment refunds. External Stripe calls are mocked in automated tests; real hosted sandbox verification still requires account setup. See [payments](PAYMENTS.md). Live payments are blocked.
 
 - Model tour departures, capacity, travelers, and booking status.
 - Calculate prices on the server and prevent overbooking.

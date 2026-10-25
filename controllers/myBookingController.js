@@ -23,6 +23,8 @@ function bookingData(booking) {
     cancelledAt: booking.cancelledAt,
     holdStatus: booking.holdStatus || 'none',
     holdExpiresAt: booking.holdExpiresAt,
+    checkoutLocked: booking.checkoutLocked || false,
+    paymentStatus: booking.paid ? 'paid' : booking.paymentStatus || 'unpaid',
   };
 }
 
@@ -68,6 +70,7 @@ exports.create = catchAsync(async (req, res, next) => {
 });
 
 exports.list = catchAsync(async (req, res, next) => {
+  res.set('Cache-Control', 'no-store');
   const page = Number(req.query.page || 1);
   if (!Number.isSafeInteger(page) || page < 1 || page > 10000) return next(new AppError('Invalid page number.', 400));
   await inventory.expireAllHolds({ user: req.user.id });

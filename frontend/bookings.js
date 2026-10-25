@@ -5,6 +5,16 @@ const bookingsMore = document.querySelector("#bookings-more");
 const bookingsRetry = document.querySelector("#bookings-retry");
 let bookingsPage = 1;
 let bookingsVersion = 0;
+let stripeTestReady = false;
+let checkoutReturn =
+  window.location.hash === "#checkout=returned" ||
+  window.location.hash === "#checkout=cancelled";
+if (checkoutReturn)
+  history.replaceState(
+    null,
+    "",
+    window.location.pathname + window.location.search,
+  );
 
 async function bookingRequest(path, method = "GET", body) {
   const response = await fetch(`/api/v1/bookings${path}`, {
@@ -187,7 +197,7 @@ function renderBooking(booking) {
     element(
       "p",
       "booking-state",
-      `${booking.status === "cancelled" ? "Cancelled" : "Pending"} · ${booking.paid ? "Paid" : "Unpaid"}`,
+      `${booking.status === "confirmed" ? "Confirmed" : booking.status === "cancelled" ? "Cancelled" : "Pending"} · ${{ paid: "Paid", checkout: "Checkout in progress", refund_pending: "Refund pending", refunded: "Refunded", unpaid: "Unpaid" }[booking.paymentStatus] || (booking.paid ? "Paid" : "Unpaid")}`,
     ),
   );
   card.append(element("small", "", `Reference: ${booking._id}`));
@@ -196,6 +206,17 @@ function renderBooking(booking) {
     !booking.paid &&
     date > new Date().toISOString().slice(0, 10)
   ) {
+    if (booking.checkoutLocked) {
+      card.append(
+        element(
+          "p",
+          "booking-note",
+          "Stripe test checkout is active. Seats stay protected until payment is confirmed or checkout is verified as closed.",
+        ),
+      );
+      addCheckoutControls(card, booking, true);
+      return card;
+    }
     const held =
       booking.holdStatus === "held" &&
       new Date(booking.holdExpiresAt) > new Date();
@@ -233,6 +254,7 @@ function renderBooking(booking) {
       }
     });
     card.append(holdInfo, holdAction, holdFeedback);
+    if (held) addCheckoutControls(card, booking, false);
     const cancel = element("button", "button secondary", "Cancel request");
     cancel.type = "button";
     const feedback = element("p");
@@ -271,6 +293,12 @@ async function loadMyBookings(append = false) {
     bookingsList.replaceChildren();
   }
   try {
+    try {
+      const configuration = await api("/api/v1/payments/status");
+      stripeTestReady = configuration.data.enabled;
+    } catch {
+      stripeTestReady = false;
+    }
     const result = await bookingRequest(`/mine?page=${bookingsPage}`);
     if (version !== bookingsVersion || !bookingsDialog.open) return;
     bookingsList.append(...result.data.bookings.map(renderBooking));
@@ -317,7 +345,71 @@ bookingsMore.addEventListener("click", () => {
 document.addEventListener("planit:account-change", () => {
   if (bookingsDialog.open) bookingsDialog.close();
   if (dialog.open) dialog.close();
+  openCheckoutReturn();
 });
+
+function openCheckoutReturn() {
+  if (checkoutReturn && currentUser) {
+    checkoutReturn = false;
+    const notice = document.querySelector("#checkout-return-message");
+    notice.hidden = false;
+    notice.textContent =
+      "You returned from Stripe test checkout. Returning here does not prove payment. Only server-verified payments become confirmed; refresh to see the latest status. If you left checkout unpaid, use Cancel checkout to release the seats.";
+    showMyBookings();
+  }
+}
+openCheckoutReturn();
+
+function addCheckoutControls(card, booking, locked) {
+  const feedback = element("p");
+  feedback.setAttribute("role", "status");
+  const pay = element(
+    "button",
+    "button primary",
+    locked ? "Continue test checkout" : "Pay with Stripe · test mode",
+  );
+  pay.type = "button";
+  pay.disabled = !stripeTestReady;
+  if (!stripeTestReady)
+    feedback.textContent =
+      "Stripe test checkout is not configured yet. No payment can be taken.";
+  pay.addEventListener("click", async () => {
+    const version = bookingsVersion;
+    pay.disabled = true;
+    feedback.textContent = "Opening secure Stripe test checkout…";
+    try {
+      const result = await bookingRequest(`/${booking._id}/checkout`, "POST");
+      if (version !== bookingsVersion || !bookingsDialog.open) return;
+      const url = new URL(result.data.url);
+      if (url.protocol !== "https:" || url.hostname !== "checkout.stripe.com")
+        throw new Error("An invalid checkout address was returned.");
+      window.location.assign(url.href);
+    } catch (error) {
+      feedback.textContent = `${error.message} Refresh My bookings before changing this request.`;
+      pay.disabled = !stripeTestReady;
+    }
+  });
+  card.append(pay, feedback);
+  if (locked) {
+    const cancel = element("button", "button secondary", "Cancel checkout");
+    cancel.type = "button";
+    cancel.addEventListener("click", async () => {
+      const version = bookingsVersion;
+      cancel.disabled = true;
+      pay.disabled = true;
+      try {
+        await bookingRequest(`/${booking._id}/checkout/cancel`, "POST");
+        if (version === bookingsVersion && bookingsDialog.open)
+          await loadMyBookings();
+      } catch (error) {
+        feedback.textContent = error.message;
+        cancel.disabled = false;
+        pay.disabled = !stripeTestReady;
+      }
+    });
+    card.append(cancel);
+  }
+}
 
 function createAvailability(tour, selectDate) {
   const panel = element("aside", "departure-availability");

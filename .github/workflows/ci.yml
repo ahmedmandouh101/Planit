@@ -47,6 +47,7 @@ jobs:
       - run: npm run test:integration
       - run: npm run test:bookings
       - run: npm run test:inventory
+      - run: npm run test:payments
       - run: npm run test:mail
       - name: Service diagnostics
         if: failure()
