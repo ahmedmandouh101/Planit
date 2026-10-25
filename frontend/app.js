@@ -479,3 +479,4 @@ logoutButton.addEventListener("click", async () => {
   }
 });
 restoreAccount().then(() => loadTours());
+document.addEventListener("planit:password-reset", () => restoreAccount());

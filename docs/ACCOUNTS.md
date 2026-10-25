@@ -16,4 +16,16 @@ The server always derives the user ID from authentication. Request bodies cannot
 
 Run `npm test`, `npm run test:integration`, and `npm run test:mail`. The integration test verifies cookies, anonymous rejection, isolation between two accounts, duplicate saves, invalid and missing tours, removal, and logout cookies against real MongoDB.
 
-Next: password reset UI, then booking dates and checkout. Deployment needs HTTPS for production cookies.
+## Password recovery
+
+Open **Log in / Sign up → Forgot your password?**. Submit the account email and follow the link in Mailpit at `http://localhost:8025` during development. The link opens the new-password form; successful reset signs the user in and invalidates their previous sessions, including sessions issued within the same second.
+
+Set `PUBLIC_APP_URL` to the trusted application origin. It defaults to `http://localhost:3000` (or the configured `PORT`) locally. Production requires an explicit HTTPS origin. Reset emails never use the incoming Host header to construct links.
+
+Reset tokens expire after ten minutes, are stored hashed, and can only be consumed once, including concurrent attempts. The link carries the token in a URL fragment, which is not sent to the server; the page removes it from browser history immediately and keeps it only in memory while the form is open. Closing or refreshing the form requires reopening the original email link.
+
+The API returns the same success message for registered and unknown email addresses. Recovery endpoints share a limit of ten attempts per IP per fifteen minutes. SMTP failures clear only the token created by that failed request, without removing a newer request's token. Reset token fields are excluded from normal user queries.
+
+`npm run test:mail` checks the real email link, trusted origin despite a spoofed Host header, hashed tokens, password validation, expiry, simultaneous reuse, old-session rejection, and the new authenticated cookie. `npm test` also checks input validation and recovery request limits.
+
+Next: booking dates and checkout. Deployment needs HTTPS for production cookies.

@@ -60,9 +60,9 @@ module.exports = class Email {
 
   async sendPasswordReset() {
     // Define the content for the password reset email
-    const subject = 'Your password reset token (valid for only 10 minutes)';
-    const htmlContent = `<p>Hello from Planit!</p><p>Your password reset URL is: ${this.url}</p><p>This token is valid for only 10 minutes.</p>`;
-    const textContent = `Hello, ${this.firstName}!\n\nYour password reset token is: ${this.url}\n\nThis token is valid for only 10 minutes.`;
+    const subject = 'Reset your Planit password (valid for 10 minutes)';
+    const htmlContent = `<h2>Reset your Planit password</h2><p>Follow the link below to choose a new password. It expires in 10 minutes and can only be used once.</p><p><a href="${this.url}">Reset password</a></p><p>If you did not request this, you can ignore this email. Your password has not changed.</p>`;
+    const textContent = `Reset your Planit password:\n\n${this.url}\n\nThis link expires in 10 minutes and can only be used once. If you did not request it, you can ignore this email.`;
 
     // Send the password reset email
     await this.send(subject, htmlContent, textContent);

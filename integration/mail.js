@@ -20,6 +20,7 @@ before(async () => {
   server = require('../app').listen(0, '127.0.0.1');
   await new Promise((resolve) => server.once('listening', resolve));
   baseUrl = `http://127.0.0.1:${server.address().port}`;
+  process.env.PUBLIC_APP_URL = baseUrl;
 });
 
 after(async () => {
@@ -45,22 +46,57 @@ test('signup and password reset deliver real SMTP messages to Mailpit', async ()
   const stored = await User.findOne({ email });
   createdUserId = stored && stored.id;
   assert.equal(signup.status, 201);
-  assert.equal((await request('/api/v1/users/forgetPassword', { email })).status, 200);
+  const originalToken = (await signup.json()).token;
+  const unknownEmail = await request('/api/v1/users/forgetPassword', { email: `unknown-${crypto.randomUUID()}@example.com` });
+  assert.equal(unknownEmail.status, 200);
+  const resetRequest = await fetch(`${baseUrl}/api/v1/users/forgetPassword`, {
+    method: 'POST', headers: { 'Content-Type': 'application/json', Host: 'attacker.example.com' },
+    body: JSON.stringify({ email }), signal: AbortSignal.timeout(15000),
+  });
+  assert.equal(resetRequest.status, 200);
+  assert.deepEqual(await resetRequest.json(), await unknownEmail.json());
 
   const inboxResponse = await fetch('http://127.0.0.1:8025/api/v1/messages', { signal: AbortSignal.timeout(5000) });
   assert.equal(inboxResponse.status, 200);
   const inbox = await inboxResponse.json();
   const messages = inbox.messages.filter((message) => message.To.some((recipient) => recipient.Address === email));
   assert.ok(messages.some((message) => message.Subject === 'Welcome to Planit!'));
-  const resetMessage = messages.find((message) => message.Subject.includes('password reset'));
+  const resetMessage = messages.find((message) => message.Subject.includes('Reset your Planit password'));
   assert.ok(resetMessage);
   const messageResponse = await fetch(`http://127.0.0.1:8025/api/v1/message/${resetMessage.ID}`);
   const message = await messageResponse.json();
-  const resetPath = message.Text.match(/\/api\/v1\/users\/resetPassword\/[a-f0-9]{64}/);
-  assert.ok(resetPath);
-  const reset = await request(resetPath[0], { password: newPassword, confirmPassword: newPassword }, 'PATCH');
-  assert.equal(reset.status, 200);
+  const resetLink = message.Text.match(/https?:\/\/[^\s]+\/#reset-password=([a-f0-9]{64})/);
+  assert.ok(resetLink);
+  assert.equal(new URL(resetLink[0]).origin, baseUrl);
+  assert.equal(message.Text.includes('attacker.example.com'), false);
+  assert.match(message.HTML, /<a href=".*#reset-password=/);
+  const page = await fetch(resetLink[0]);
+  assert.equal(page.status, 200);
+  assert.match(await page.text(), /id="recovery-dialog"/);
+  const resetPath = `/api/v1/users/resetPassword/${resetLink[1]}`;
+  const tokenRecord = await User.findById(createdUserId).select('+passwordResetToken');
+  assert.equal(typeof tokenRecord.passwordResetToken, 'string');
+  assert.equal(tokenRecord.passwordResetToken, crypto.createHash('sha256').update(resetLink[1]).digest('hex'));
+  assert.notEqual(tokenRecord.passwordResetToken, resetLink[1]);
+  assert.equal((await request(resetPath, { password: newPassword, confirmPassword: 'mismatched-password' }, 'PATCH')).status, 400);
+  const attempts = await Promise.all([
+    request(resetPath, { password: newPassword, confirmPassword: newPassword }, 'PATCH'),
+    request(resetPath, { password: newPassword, confirmPassword: newPassword }, 'PATCH'),
+  ]);
+  const failedAttempts = await Promise.all(attempts.filter((response) => response.status !== 200).map((response) => response.clone().json()));
+  assert.deepEqual(attempts.map((response) => response.status).sort(), [200, 400], JSON.stringify(failedAttempts.map((result) => result.message)));
+  const oldSession = await fetch(`${baseUrl}/api/v1/users/me`, { headers: { Authorization: `Bearer ${originalToken}` } });
+  assert.equal(oldSession.status, 401);
+  const resetCookie = attempts.find((response) => response.status === 200).headers.get('set-cookie').split(';')[0];
+  assert.equal((await fetch(`${baseUrl}/api/v1/users/me`, { headers: { Cookie: resetCookie } })).status, 200);
   assert.equal((await request('/api/v1/users/login', { email, password })).status, 401);
   assert.equal((await request('/api/v1/users/login', { email, password: newPassword })).status, 200);
-  assert.equal((await request(resetPath[0], { password, confirmPassword: password }, 'PATCH')).status, 400);
+  assert.equal((await request(resetPath, { password, confirmPassword: password }, 'PATCH')).status, 400);
+  assert.equal((await request('/api/v1/users/forgetPassword', { email })).status, 200);
+  const expiredToken = crypto.randomBytes(32).toString('hex');
+  await User.findByIdAndUpdate(createdUserId, {
+    passwordResetToken: crypto.createHash('sha256').update(expiredToken).digest('hex'),
+    passwordResetExpires: Date.now() - 1000,
+  });
+  assert.equal((await request(`/api/v1/users/resetPassword/${expiredToken}`, { password, confirmPassword: password }, 'PATCH')).status, 400);
 });

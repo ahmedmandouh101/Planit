@@ -10,6 +10,7 @@
     <title>Planit — Discover a different side of Egypt</title>
     <link rel="stylesheet" href="/styles.css" />
     <script src="/app.js" defer></script>
+    <script src="/recovery.js" defer></script>
   </head>
   <body>
     <a class="skip-link" href="#explore">Skip to experiences</a>
@@ -243,7 +244,70 @@
         <button class="account-button" id="auth-switch" type="button">
           New to Planit? Create an account
         </button>
+        <button class="account-button" id="forgot-password" type="button">
+          Forgot your password?
+        </button>
       </form>
+    </dialog>
+    <dialog id="recovery-dialog" aria-labelledby="recovery-title">
+      <button
+        class="close-dialog"
+        id="close-recovery"
+        type="button"
+        aria-label="Close password recovery"
+      >
+        ×
+      </button>
+      <p class="eyebrow">BACK TO YOUR NEXT ADVENTURE</p>
+      <h2 id="recovery-title">Forgot your password?</h2>
+      <p id="recovery-description">
+        Enter your email and we’ll send you a link to reset it.
+      </p>
+      <form id="recovery-form" class="auth-form">
+        <label id="recovery-email-field"
+          >Email address<input
+            id="recovery-email"
+            type="email"
+            name="email"
+            autocomplete="email"
+            required
+            maxlength="254"
+        /></label>
+        <label id="recovery-password-field" hidden
+          >New password<input
+            id="recovery-password"
+            type="password"
+            name="password"
+            autocomplete="new-password"
+            minlength="8"
+            maxlength="128"
+            required
+            disabled
+        /></label>
+        <label id="recovery-confirm-field" hidden
+          >Confirm new password<input
+            id="recovery-confirm"
+            type="password"
+            name="confirmPassword"
+            autocomplete="new-password"
+            minlength="8"
+            maxlength="128"
+            required
+            disabled
+        /></label>
+        <p id="recovery-message" role="status" aria-live="polite"></p>
+        <button id="recovery-submit" class="button primary" type="submit">
+          Send reset link
+        </button>
+      </form>
+      <div class="recovery-actions">
+        <button id="recovery-again" class="account-button" type="button" hidden>
+          Request a new link
+        </button>
+        <button id="recovery-back" class="account-button" type="button">
+          Back to login
+        </button>
+      </div>
     </dialog>
     <dialog id="tour-dialog" aria-labelledby="dialog-title">
       <button

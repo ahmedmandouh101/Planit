@@ -117,6 +117,17 @@ button {
   margin: 0;
   color: #a0442c;
 }
+#recovery-message {
+  margin: 0;
+  color: #a0442c;
+}
+.recovery-actions {
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 20px;
+}
 @media (max-width: 900px) {
   .site-header nav {
     display: none;

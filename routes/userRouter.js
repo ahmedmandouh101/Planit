@@ -1,4 +1,5 @@
 const express = require('express');
+const rateLimit = require('express-rate-limit');
 const userController = require('../controllers/userController');
 const authController = require('../controllers/authController');
 
@@ -8,8 +9,9 @@ router.post('/signup', authController.signup);
 router.post('/login', authController.login);
 router.get('/logout', authController.logout);
 
-router.post('/forgetPassword', authController.forgetPassword);
-router.patch('/resetPassword/:token', authController.resetPassword);
+const recoveryLimiter = rateLimit({ windowMs: 15 * 60 * 1000, max: 10, standardHeaders: true, legacyHeaders: false, message: { status: 'fail', message: 'Too many password recovery attempts. Please try again in 15 minutes.' } });
+router.post('/forgetPassword', recoveryLimiter, authController.forgetPassword);
+router.patch('/resetPassword/:token', recoveryLimiter, authController.resetPassword);
 
 // protect this routes after this middleware because they must be login
 router.use(authController.protect);

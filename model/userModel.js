@@ -47,8 +47,9 @@ const userSchema = new mongoose.Schema({
     },
   },
   passwordChangedAt: Date,
-  passwordResetToken: String,
-  passwordResetExpires: Date,
+  passwordResetToken: { type: String, select: false },
+  passwordResetExpires: { type: Date, select: false },
+  passwordVersion: { type: Number, default: 0 },
   active: {
     // to inactivate the deleted user
     type: Boolean,
@@ -73,6 +74,7 @@ userSchema.pre('save', function (next) {
   if (!this.isModified('password') || this.isNew) return next();
 
   this.passwordChangedAt = Date.now() - 1000;
+  this.passwordVersion = (this.passwordVersion || 0) + 1;
   next();
 });
 
