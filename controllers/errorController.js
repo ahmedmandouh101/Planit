@@ -34,7 +34,7 @@ const sendErrorDev = (err, res) => {
   });
 };
 
-const sendErrorProd = (err, res) => {
+const sendErrorProd = (err, req, res) => {
   // Operational, trusted error: send message to client
   if (err.isOperational) {
     res.status(err.statusCode).json({
@@ -45,12 +45,18 @@ const sendErrorProd = (err, res) => {
     // Programming or other unknown error: don't leak error details
   } else {
     // 1) Log error
-    console.error('ERROR 💥', err);
+    console.error(JSON.stringify({
+      event: 'request_error',
+      timestamp: new Date().toISOString(),
+      requestId: req.requestId,
+      statusCode: 500,
+    }));
 
     // 2) Send generic message
     res.status(500).json({
       status: 'error',
       message: 'Something went very wrong!',
+      requestId: req.requestId,
     });
   }
 };
@@ -73,6 +79,6 @@ module.exports = (err, req, res, next) => {
     if (error.name === 'JsonWebTokenError') error = handleJWTError();
     if (error.name === 'TokenExpiredError') error = handleJWTExpiredError();
 
-    sendErrorProd(error, res);
+    sendErrorProd(error, req, res);
   }
 };

@@ -20,6 +20,7 @@ const driverRouter = require('./routes/driverRouter');
 
 
 const app = express();
+app.use(require('./utils/requestContext'));
 app.set('view engine', 'pug');
 app.set('views', path.join(__dirname, 'views'));
 
@@ -31,6 +32,8 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 // Set security http headers
 app.use(helmet());
+app.get('/docs/openapi.json', require('./controllers/apiDocsController').specification);
+app.get('/api-docs', require('./controllers/apiDocsController').index);
 app.post('/api/v1/payments/webhook', express.raw({ type: 'application/json', limit: '128kb' }), require('./controllers/paymentController').webhook);
 app.get('/api/v1/payments/status', require('./controllers/paymentController').status);
 app.use(express.static(path.join(__dirname, 'frontend')));

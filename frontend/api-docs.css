@@ -1,0 +1,50 @@
+:root {
+  font-family: system-ui, sans-serif;
+  color: #173b35;
+  background: #f8f8f2;
+}
+body {
+  margin: 0;
+}
+main {
+  max-width: 1050px;
+  margin: auto;
+  padding: 40px 20px;
+}
+h1 {
+  font-size: clamp(2rem, 6vw, 3rem);
+}
+p {
+  line-height: 1.7;
+}
+a {
+  color: #175a4e;
+}
+section {
+  margin-top: 36px;
+}
+details {
+  background: white;
+  border: 1px solid #cdd9d3;
+  border-radius: 10px;
+  margin: 12px 0;
+  padding: 16px;
+}
+summary {
+  cursor: pointer;
+  line-height: 1.8;
+  overflow-wrap: anywhere;
+}
+strong {
+  display: inline-block;
+  min-width: 65px;
+}
+pre {
+  overflow: auto;
+  padding: 16px;
+  background: #f1f4f1;
+  font-size: 0.85rem;
+}
+code {
+  font-size: 0.95em;
+}

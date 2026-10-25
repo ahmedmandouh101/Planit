@@ -20,6 +20,13 @@ Implemented next: Stripe test checkout, raw-body signed webhooks, idempotent con
 
 ## 3. API and engineering quality
 
+Delivered: a same-origin read-only API reference and OpenAPI 3.0.3 JSON contract
+for core customer flows and departure configuration, with documentation
+regression tests. Legacy endpoints remain outside this contract; see [API scope](API.md).
+
+Delivered: server-generated request IDs and privacy-conscious production HTTP
+JSON logs with correlated unexpected errors. See [request tracing](OBSERVABILITY.md).
+
 - Define request validation and field allowlists for every write endpoint.
 - Publish OpenAPI documentation and reproducible seed data.
 - Add database integration tests, structured logs, and readiness checks.
