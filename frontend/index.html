@@ -9,6 +9,8 @@
     />
     <title>Planit — Discover a different side of Egypt</title>
     <link rel="stylesheet" href="/styles.css" />
+    <link rel="stylesheet" href="/experience.css" />
+    <script src="/experience.js" defer></script>
     <script src="/app.js" defer></script>
     <script src="/recovery.js" defer></script>
     <script src="/bookings.js" defer></script>
@@ -20,7 +22,8 @@
         >planit<span>↗</span></a
       >
       <nav aria-label="Main navigation">
-        <a href="#explore">Experiences</a><a href="#how">How it works</a>
+        <a href="#explore">Experiences</a
+        ><a href="#destinations">Destinations</a><a href="#how">How it works</a>
       </nav>
       <div class="account-actions">
         <button id="my-bookings" class="account-button" type="button" hidden>
@@ -44,20 +47,19 @@
       <section class="hero wrap" aria-labelledby="hero-title">
         <div class="hero-copy">
           <p class="eyebrow">
-            <span class="dot"></span> A NEW PERSPECTIVE ON EGYPT
+            <span class="dot"></span> GO SOMEWHERE THAT STAYS WITH YOU
           </p>
-          <h1 id="hero-title">Egypt, beyond<br />the <em>ordinary.</em></h1>
+          <h1 id="hero-title">Not just a place.<br />A <em>feeling.</em></h1>
           <p class="hero-description">
-            From Cairo's historic streets to the timeless landscapes of
-            Luxor.<br class="desktop-break" />
-            Find an experience that makes the journey yours.
+            Slow mornings. Ancient wonders. A different kind of adventure.
+            Discover Egypt, one unforgettable experience at a time.
           </p>
           <a class="button primary" href="#explore"
-            >Explore experiences <span aria-hidden="true">↗</span></a
+            >Find your next adventure <span aria-hidden="true">↗</span></a
           >
           <div class="hero-note">
             <span aria-hidden="true">✳</span> A little discovery. A lasting
-            memory.
+            memory. Made in Egypt.
           </div>
         </div>
         <div class="destination-art">
@@ -85,6 +87,63 @@
             >Photography · Pexels ↗</a
           >
         </div>
+      </section>
+      <section class="journey-bar wrap" aria-label="Plan your visit">
+        <div>
+          <span class="journey-icon" aria-hidden="true">◎</span>
+          <p>
+            <strong>A place for your curiosity</strong
+            ><span>City walks to timeless landscapes</span>
+          </p>
+        </div>
+        <div>
+          <span class="journey-icon" aria-hidden="true">↗</span>
+          <p>
+            <strong>Your pace. Your plans.</strong
+            ><span>Compare the details before you decide</span>
+          </p>
+        </div>
+        <a href="#explore"
+          >Explore the collection <span aria-hidden="true">→</span></a
+        >
+      </section>
+      <section
+        class="destinations wrap"
+        id="destinations"
+        aria-labelledby="destinations-title"
+      >
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">A COUNTRY OF POSSIBILITIES</p>
+            <h2 id="destinations-title">Where do you want to go?</h2>
+          </div>
+          <p>Two starting points.<br />Endless reasons to explore.</p>
+        </div>
+        <div class="destination-grid">
+          <button
+            class="city-card city-cairo"
+            type="button"
+            data-destination="Cairo"
+          >
+            <span class="city-index">01 / THE CITY THAT NEVER STANDS STILL</span
+            ><span class="city-name"
+              >Cairo<span aria-hidden="true">↗</span></span
+            ><span>Layers of history. Streets full of life.</span>
+          </button>
+          <button
+            class="city-card city-luxor"
+            type="button"
+            data-destination="Luxor"
+          >
+            <span class="city-index">02 / A JOURNEY THROUGH TIME</span
+            ><span class="city-name"
+              >Luxor<span aria-hidden="true">↗</span></span
+            ><span>Ancient stories. A slower rhythm.</span>
+          </button>
+        </div>
+        <p class="destination-hint">
+          Destination shortcuts search the currently loaded tour collection.
+        </p>
       </section>
       <div class="ticker" aria-hidden="true">
         <div class="wrap">
@@ -175,15 +234,55 @@
             <span>03</span>
             <h3>Plan what comes next</h3>
             <p>
-              Request a date, hold your seats, and track everything in My bookings. Checkout uses test payments only when configured.
+              Request a date, hold your seats, and track everything in My
+              bookings. Checkout uses test payments only when configured.
             </p>
           </article>
+        </div>
+      </section>
+      <section class="travel-notes wrap" aria-labelledby="travel-notes-title">
+        <div>
+          <p class="eyebrow">A LITTLE CLARITY BEFORE YOU GO</p>
+          <h2 id="travel-notes-title">Good questions.<br />Simple answers.</h2>
+          <p>More exploring. Less second-guessing.</p>
+        </div>
+        <div class="travel-questions">
+          <details>
+            <summary>How does a booking request work?</summary>
+            <p>
+              Choose a tour, date, and number of guests. Your request appears in
+              My bookings. For a scheduled departure, choose Hold seats to
+              reserve available capacity temporarily for up to 15 minutes. A
+              request alone does not reserve seats.
+            </p>
+          </details>
+          <details>
+            <summary>Can I pay for a trip here?</summary>
+            <p>
+              Planit is currently a portfolio preview, not a live travel
+              operator. Real payments are disabled. Stripe test checkout is
+              available only when configured, and its hosted sandbox
+              verification is still pending. Sample tours are marked Demo.
+            </p>
+          </details>
+          <details>
+            <summary>Where do my saved experiences go?</summary>
+            <p>
+              While logged out, your favorites stay in this browser. Log in to
+              save experiences to your account and find your account favorites
+              on another device.
+            </p>
+          </details>
         </div>
       </section>
     </main>
     <footer class="wrap">
       <a class="brand" href="/" dir="ltr">planit<span>↗</span></a>
       <p>A different way to discover Egypt.</p>
+      <nav aria-label="Footer navigation">
+        <a href="#explore">Explore</a><a href="#destinations">Destinations</a
+        ><a href="/api-docs">API reference ↗</a>
+      </nav>
       <span
         >Made for the curious.
         <span id="save-feedback" role="status" aria-live="polite"></span
