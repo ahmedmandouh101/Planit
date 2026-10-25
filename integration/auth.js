@@ -17,7 +17,7 @@ before(async () => {
   process.env.JWT_SECRET = crypto.randomBytes(48).toString('hex');
   process.env.JWT_SECRET_EXPIRES_IN = '1h';
   process.env.JWT_COOKIE_EXPIRES_IN = '1';
-  await mongoose.connect('mongodb://127.0.0.1:27017/planit_test', { serverSelectionTimeoutMS: 5000 });
+  await mongoose.connect('mongodb://127.0.0.1:27018/planit_test?replicaSet=planit-rs', { serverSelectionTimeoutMS: 5000 });
   await User.init();
   server = app.listen(0, '127.0.0.1');
   await new Promise((resolve) => server.once('listening', resolve));

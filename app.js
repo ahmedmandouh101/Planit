@@ -93,6 +93,7 @@ app.use('/api/v1/users', userRouter);
 app.use('/api/v1/places', placesRouter);
 app.use('/api/v1/reviews', reviewRouter);
 app.use('/api/v1/bookings', bookingRouter);
+app.use('/api/v1/departures', require('./routes/departureRouter'));
 app.use('/api/v1/search', searchRouter);
 app.use('/api/v1/drivers', driverRouter);
 

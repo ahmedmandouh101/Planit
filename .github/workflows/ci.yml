@@ -14,7 +14,7 @@ jobs:
       - run: npm test
       - name: Start integration services
         run: |
-          docker run --detach --name planit-mongodb --publish 127.0.0.1:27017:27017 mongo:7.0.45
+          docker run --detach --name planit-mongodb --publish 127.0.0.1:27018:27018 mongo:7.0.45 --port 27018 --replSet planit-rs --bind_ip_all
           docker run --detach --name planit-mailpit --publish 127.0.0.1:1025:1025 --publish 127.0.0.1:8025:8025 axllent/mailpit:v1.31.6
       - name: Wait for integration services
         timeout-minutes: 3
@@ -26,7 +26,7 @@ jobs:
                 exit 1
               fi
             done
-            if timeout 5s docker exec planit-mongodb mongosh --host 127.0.0.1 --quiet --eval 'quit(db.adminCommand({ping:1}).ok ? 0 : 1)' &&
+            if timeout 5s docker exec planit-mongodb mongosh --host 127.0.0.1 --port 27018 --quiet --eval 'quit(db.adminCommand({ping:1}).ok ? 0 : 1)' &&
                timeout 5s docker exec planit-mailpit /mailpit readyz; then
               exit 0
             fi
@@ -34,8 +34,19 @@ jobs:
           done
           echo "Integration services did not become ready"
           exit 1
+      - name: Initialize transaction-capable MongoDB
+        run: |
+          docker exec planit-mongodb mongosh --host 127.0.0.1 --port 27018 --quiet --eval 'rs.initiate({_id:"planit-rs",members:[{_id:0,host:"127.0.0.1:27018"}]})'
+          for attempt in {1..30}; do
+            if timeout 5s docker exec planit-mongodb mongosh --host 127.0.0.1 --port 27018 --quiet --eval 'quit(db.hello().isWritablePrimary ? 0 : 1)'; then
+              exit 0
+            fi
+            sleep 1
+          done
+          exit 1
       - run: npm run test:integration
       - run: npm run test:bookings
+      - run: npm run test:inventory
       - run: npm run test:mail
       - name: Service diagnostics
         if: failure()
@@ -47,7 +58,7 @@ jobs:
             details=$(docker inspect --format '{{json .State}}' "$service" 2>&1)
             echo "::error title=$service state::$details"
           done
-          details=$(timeout 15s docker exec planit-mongodb mongosh --host 127.0.0.1 --quiet --eval 'quit(db.adminCommand({ping:1}).ok ? 0 : 1)' 2>&1) || true
+          details=$(timeout 15s docker exec planit-mongodb mongosh --host 127.0.0.1 --port 27018 --quiet --eval 'quit(db.adminCommand({ping:1}).ok ? 0 : 1)' 2>&1) || true
           details="${details//'%'/'%25'}"
           details="${details//$'\n'/'%0A'}"
           details="${details//$'\r'/'%0D'}"

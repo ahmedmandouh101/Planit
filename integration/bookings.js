@@ -20,7 +20,7 @@ const cookie = (user) => `jwt=${jwt.sign({ id: user.id, passwordVersion: 0 }, pr
 
 before(async () => {
   process.env.JWT_SECRET = crypto.randomBytes(48).toString('hex');
-  await mongoose.connect('mongodb://127.0.0.1:27017/planit_test', { serverSelectionTimeoutMS: 5000 });
+  await mongoose.connect('mongodb://127.0.0.1:27018/planit_test?replicaSet=planit-rs', { serverSelectionTimeoutMS: 5000 });
   await Promise.all([User.init(), Tour.init(), Booking.init()]);
   for (const name of ['Booking Owner', 'Other Owner']) {
     const user = await User.create({ name, email: `${crypto.randomUUID()}@example.com`, password: 'Booking-test-123', confirmPassword: 'Booking-test-123' });

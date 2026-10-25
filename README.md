@@ -10,10 +10,10 @@ See [local development](docs/LOCAL_DEVELOPMENT.md) for commands and verification
 
 1. Use Node.js 22 and install dependencies with `npm ci`.
 2. Copy `.env.example` to `.env` and set `JWT_SECRET` to a random secret of at least 32 characters.
-3. Start MongoDB and set `DATABASE_LOCAL` (or `DATABASE` for a hosted connection).
+3. Start `npm run db:local` in another terminal for transaction-capable MongoDB on port 27018. Set `DATABASE_LOCAL` (or `DATABASE` for a hosted replica-set connection). See [inventory setup](docs/INVENTORY.md) when upgrading an existing local database.
 4. Configure SMTP for welcome messages and password recovery. Run `npm run mail:local` to capture development email in Mailpit.
 5. Run `npm run dev` for development or `npm start` for normal startup.
-6. Run `npm test` for regression tests. With MongoDB and Mailpit running, also run `npm run test:integration`, `npm run test:bookings`, and `npm run test:mail` for real-service integration tests.
+6. Run `npm test` for regression tests. With MongoDB and Mailpit running, also run `npm run test:integration`, `npm run test:bookings`, `npm run test:inventory`, and `npm run test:mail` for real-service integration tests.
 
 Alternatively, run `npm run setup:local` to generate a private `.env` with a random
 JWT secret and create the upload directories. Existing `.env` files are preserved.
@@ -28,7 +28,7 @@ Demo tour images use `/demo-placeholder.svg` as their display URL.
 SMTP or Stripe availability.
 
 Set `NODE_ENV=production` through the hosting environment for deployment.
-The current booking flow creates unpaid, pending requests. It does not reserve seats or confirm availability.
+The booking flow creates unpaid, pending requests. Customers can separately hold seats for up to 15 minutes on published departures; holds do not confirm payment. Run `npm run seed:departures` to publish sample departure inventory locally.
 The legacy checkout route has been removed until booking-linked payments and verified webhooks are implemented. Do not use real payments yet.
 Image uploads currently require writable `public/img/users` and `public/img/tours` directories.
 Create those directories before testing uploads. Persistent object storage is planned.

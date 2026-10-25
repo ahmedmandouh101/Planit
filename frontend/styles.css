@@ -144,6 +144,31 @@ button {
   background: #eaf0db;
   border-radius: 8px;
 }
+.departure-availability {
+  padding: 16px;
+  background: #f1f1e8;
+  border-radius: 10px;
+  margin: 18px 0;
+}
+.departure-availability h4 {
+  margin: 0;
+}
+.departure-options {
+  display: grid;
+  gap: 8px;
+}
+.departure-choice {
+  border: 1px solid var(--line);
+  padding: 12px;
+  border-radius: 8px;
+  background: white;
+  color: var(--ink);
+  font-size: 12px;
+  text-align: left;
+}
+.hold-info {
+  color: #406d2b;
+}
 .account-actions {
   flex-wrap: wrap;
   justify-content: flex-end;

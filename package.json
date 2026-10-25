@@ -10,9 +10,12 @@
     "test:integration": "node --test integration/auth.js",
     "test:mail": "node --test integration/mail.js",
     "test:bookings": "node --test integration/bookings.js",
+    "test:inventory": "node --test integration/inventory.js",
     "setup:local": "node scripts/setup-local.js",
     "seed:demo": "node scripts/seed.js",
-    "mail:local": "node scripts/mail-local.js"
+    "mail:local": "node scripts/mail-local.js",
+    "db:local": "node scripts/db-local.js",
+    "seed:departures": "node scripts/seed-departures.js"
   },
   "author": "ahmed mandouh",
   "license": "ISC",

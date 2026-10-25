@@ -2,7 +2,7 @@
 
 Open a tour's **View details**, log in, choose a date and guest count, and submit a booking request. Use **My bookings** to view requests or cancel an unpaid pending request before its departure date. Cancellation requires a second click to confirm.
 
-This release creates **pending, unpaid requests**. They do not reserve inventory or confirm availability. `MaxGroupSize` limits guests per request, not aggregate seat availability across requests. Payments and shared departure inventory belong to the next release; the interface makes that limitation explicit.
+This release creates **pending, unpaid requests**. Requests alone do not reserve inventory. Customers can separately acquire a temporary seat hold on a published departure; see [inventory rules](INVENTORY.md). `MaxGroupSize` limits guests per request; departure capacity limits aggregate held seats. Payments are not implemented yet.
 
 ## Rules
 
@@ -22,7 +22,7 @@ All endpoints require the session cookie or a bearer token.
 - `GET /api/v1/bookings/mine?page=1`: twelve requests per page, newest first, with `hasMore`.
 - `PATCH /api/v1/bookings/:id/cancel`: owner-only cancellation; no body required.
 
-Existing administrative read/update/delete routes are now admin-only; lead guides no longer have unrestricted access to customer bookings. Generic administrative creation was replaced by the validated request flow. The legacy checkout route and URL-query booking helper were removed. Future Stripe integration must create sessions from a booking and confirm payment through verified webhooks, never browser redirect parameters.
+Administrative reads are admin-only. Generic booking updates and deletion are disabled so they cannot bypass inventory accounting. Generic creation was replaced by the validated request flow. The legacy checkout route and URL-query booking helper were removed. Future Stripe integration must create sessions from a booking and confirm payment through verified webhooks, never browser redirect parameters.
 
 Legacy documents are not deleted or rewritten. Records missing new booking fields display unavailable details and cannot be cancelled through the new owner endpoint. Before enabling a shared database, check for conflicting pending records before building the unique indexes.
 

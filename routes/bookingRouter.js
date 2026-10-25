@@ -10,8 +10,11 @@ router.use(authController.protect);
 router.get('/mine', myBookingController.list);
 router.post('/', myBookingController.create);
 router.patch('/:id/cancel', myBookingController.cancel);
+router.post('/:id/hold', myBookingController.hold);
+router.delete('/:id/hold', myBookingController.release);
 
 router.use(authController.restrictTo('admin'));
+router.use('/:id', bookingController.protectInventory);
 
 router
   .route('/')
@@ -19,8 +22,6 @@ router
 
 router
   .route('/:id')
-  .get(bookingController.getBooking)
-  .patch(bookingController.updateBooking)
-  .delete(bookingController.deleteBooking);
+  .get(bookingController.getBooking);
 
 module.exports = router;

@@ -14,14 +14,12 @@ async function bookingRequest(path, method = "GET", body) {
     body: body ? JSON.stringify(body) : undefined,
     signal: AbortSignal.timeout(15000),
   });
-  const result = await response
-    .json()
-    .catch(() => ({
-      message:
-        response.status === 429
-          ? "Too many requests. Please try again later."
-          : "We could not complete your request. Please try again.",
-    }));
+  const result = await response.json().catch(() => ({
+    message:
+      response.status === 429
+        ? "Too many requests. Please try again later."
+        : "We could not complete your request. Please try again.",
+  }));
   if (!response.ok)
     throw new Error(
       result.message || "We could not complete your request. Please try again.",
@@ -33,6 +31,7 @@ function createBookingForm(tour) {
   const section = element("section", "booking-panel");
   section.append(element("h3", "", "Make it your next adventure"));
   if (!currentUser) {
+    section.append(createAvailability(tour));
     const login = element(
       "button",
       "button primary",
@@ -83,6 +82,12 @@ function createBookingForm(tour) {
     dateInput.min = new Date(Date.now() + 86400000).toISOString().slice(0, 10);
   }
   dateLabel.append(dateInput);
+  section.append(
+    createAvailability(tour, (date) => {
+      dateInput.value = date;
+      dateInput.dispatchEvent(new Event("change"));
+    }),
+  );
   const guestLabel = element(
     "label",
     "",
@@ -191,6 +196,43 @@ function renderBooking(booking) {
     !booking.paid &&
     date > new Date().toISOString().slice(0, 10)
   ) {
+    const held =
+      booking.holdStatus === "held" &&
+      new Date(booking.holdExpiresAt) > new Date();
+    const holdInfo = element(
+      "p",
+      "hold-info",
+      held
+        ? "Seats held temporarily."
+        : booking.holdStatus === "expired"
+          ? "Your previous seat hold expired."
+          : "Seats are not held.",
+    );
+    if (held) holdInfo.dataset.holdExpires = booking.holdExpiresAt;
+    const holdAction = element(
+      "button",
+      "button secondary",
+      held ? "Release seats" : "Hold seats for 15 minutes",
+    );
+    holdAction.type = "button";
+    const holdFeedback = element("p");
+    holdFeedback.setAttribute("role", "status");
+    holdAction.addEventListener("click", async () => {
+      const version = bookingsVersion;
+      holdAction.disabled = true;
+      try {
+        const result = await bookingRequest(
+          `/${booking._id}/hold`,
+          held ? "DELETE" : "POST",
+        );
+        if (version === bookingsVersion && bookingsDialog.open)
+          card.replaceWith(renderBooking(result.data.booking));
+      } catch (error) {
+        holdFeedback.textContent = error.message;
+        holdAction.disabled = false;
+      }
+    });
+    card.append(holdInfo, holdAction, holdFeedback);
     const cancel = element("button", "button secondary", "Cancel request");
     cancel.type = "button";
     const feedback = element("p");
@@ -259,6 +301,9 @@ document
   .querySelector("#my-bookings")
   .addEventListener("click", showMyBookings);
 document
+  .querySelector("#bookings-refresh")
+  .addEventListener("click", () => loadMyBookings());
+document
   .querySelector("#close-bookings")
   .addEventListener("click", () => bookingsDialog.close());
 bookingsDialog.addEventListener("close", () => {
@@ -273,3 +318,73 @@ document.addEventListener("planit:account-change", () => {
   if (bookingsDialog.open) bookingsDialog.close();
   if (dialog.open) dialog.close();
 });
+
+function createAvailability(tour, selectDate) {
+  const panel = element("aside", "departure-availability");
+  const message = element("p", "", "Loading scheduled departures…");
+  message.setAttribute("role", "status");
+  const options = element("div", "departure-options");
+  const refresh = element(
+    "button",
+    "account-button",
+    "Refresh seat availability",
+  );
+  refresh.type = "button";
+  panel.append(
+    element("h4", "", "Scheduled departures"),
+    message,
+    options,
+    refresh,
+  );
+  async function load() {
+    refresh.disabled = true;
+    try {
+      const response = await fetch(
+        `/api/v1/departures?tourId=${encodeURIComponent(tour._id)}`,
+        { signal: AbortSignal.timeout(10000) },
+      );
+      if (!response.ok)
+        throw new Error(
+          "Seat availability could not be loaded. Please refresh to try again.",
+        );
+      const result = await response.json();
+      options.replaceChildren();
+      message.textContent = result.data.departures.length
+        ? "Availability can change. Requests do not hold seats until you choose Hold seats in My bookings."
+        : "No seat inventory has been published yet. You can still submit an unpaid request.";
+      for (const departure of result.data.departures) {
+        const choice = element(
+          selectDate ? "button" : "p",
+          "departure-choice",
+          `${departure.date.slice(0, 10)} · ${departure.closed ? "Closed" : `${departure.availableSeats} of ${departure.capacity} seats available`}`,
+        );
+        if (selectDate) {
+          choice.type = "button";
+          choice.disabled = departure.closed || departure.availableSeats === 0;
+          choice.addEventListener("click", () =>
+            selectDate(departure.date.slice(0, 10)),
+          );
+        }
+        options.append(choice);
+      }
+    } catch (error) {
+      message.textContent = error.message;
+    } finally {
+      refresh.disabled = false;
+    }
+  }
+  refresh.addEventListener("click", load);
+  load();
+  return panel;
+}
+
+setInterval(() => {
+  for (const label of document.querySelectorAll("[data-hold-expires]")) {
+    const remaining =
+      new Date(label.dataset.holdExpires).getTime() - Date.now();
+    label.textContent =
+      remaining > 0
+        ? `Seats held for ${Math.ceil(remaining / 60000)} more minute(s). Payment is not confirmed.`
+        : "Hold expired. Refresh bookings to check availability and hold again.";
+  }
+}, 1000);

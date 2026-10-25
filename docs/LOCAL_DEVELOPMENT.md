@@ -11,12 +11,11 @@ The setup command creates `.env` only if it does not exist. It generates a rando
 JWT signing secret and prepares image upload directories. `.env` is ignored by
 Git; `.env.example` documents configuration without containing real secrets.
 
-Install and start MongoDB Community locally. The default development connection
-is `mongodb://127.0.0.1:27017/planit`. If using a different development database,
-edit `.env` locally.
+Install MongoDB Community locally, then run `npm run db:local` in a separate terminal. It starts a single-node replica set on port 27018 with ignored local data. The default connection is `mongodb://127.0.0.1:27018/planit?replicaSet=planit-rs`. The replica set is required for atomic seat inventory. Existing port-27017 Windows service data stays separate; see [upgrade and copy instructions](INVENTORY.md) before switching an existing project.
 
 ```powershell
 npm run seed:demo
+npm run seed:departures
 npm run dev
 ```
 
@@ -65,25 +64,22 @@ email settings to localhost and does not load your private `.env`.
 
 With local MongoDB running, `npm run test:integration` exercises signup, password
 hashing, invalid and valid login, JWT authentication, and database readiness.
-It uses a separate `planit_test` database on `127.0.0.1:27017`, creates a uniquely
+It uses a separate `planit_test` database on the port-27018 replica set, creates a uniquely
 named user, and removes that user afterward. Email delivery alone is mocked;
 this command does not verify SMTP. It does not load `.env` or use a remote database.
 
-Configure an SMTP server before testing signup and password reset. The current
-signup handler saves the account and then awaits its welcome email. If SMTP fails,
-the request fails even though the account may already exist. Email reliability
-and a full authentication integration test are follow-up work.
+Configure SMTP before testing email delivery and password reset. Welcome email failure does not prevent an already-created account from signing in. Password-recovery delivery failures return an error and clear that request's token.
+
+Run `npm run test:bookings` and `npm run test:inventory` for real MongoDB booking, capacity, expiry, concurrency, and rollback checks. Tests clean up their own fixtures. See [inventory documentation](INVENTORY.md) for API rules and limitations.
 
 Use `Authorization: Bearer <token>` for protected requests. Do not put tokens or
 credentials in commits, screenshots, or documentation.
 
 ## Git workflow
 
-Development continues on `development`. Review changes with `git diff`, run
-`npm test`, and create commits yourself. Future feature work can use separate
-branches and pull requests into `development`; stable releases merge into `main`.
+Current work is on `main` as requested. Review `git diff`, run the relevant tests, and create commits yourself. Separate feature branches and reviewed pull requests are suitable for later shared work.
 
 The GitHub Actions workflow provides CI by installing dependencies and running
 regression tests plus the authentication integration test against a temporary
-MongoDB 8.0 service container. A Mailpit service also verifies real SMTP delivery
+MongoDB 7.0.45 replica-set container on port 27018. A Mailpit container also verifies real SMTP delivery
 and password reset. Deployment automation (CD) is not configured yet.

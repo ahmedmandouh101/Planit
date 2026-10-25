@@ -28,6 +28,9 @@ const bookingSchema = new mongoose.Schema({
   status: { type: String, enum: ['pending', 'cancelled'], default: 'pending' },
   cancelledAt: Date,
   requestId: String,
+  departure: { type: mongoose.Schema.ObjectId, ref: 'Departure' },
+  holdStatus: { type: String, enum: ['none', 'held', 'expired', 'released'], default: 'none' },
+  holdExpiresAt: Date,
   paid: {
     type: Boolean,
     default: false,
@@ -36,6 +39,7 @@ const bookingSchema = new mongoose.Schema({
 bookingSchema.index({ user: 1, requestId: 1 }, { unique: true, partialFilterExpression: { requestId: { $type: 'string' } } });
 bookingSchema.index({ user: 1, tour: 1, departureDate: 1 }, { unique: true, partialFilterExpression: { status: 'pending' } });
 bookingSchema.index({ user: 1, createdAt: -1, _id: -1 });
+bookingSchema.index({ departure: 1, holdStatus: 1, holdExpiresAt: 1 });
 
 bookingSchema.pre(/^find/, function (next) {
   this.populate({

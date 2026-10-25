@@ -3,6 +3,7 @@ const Tour = require('../model/tourModel');
 const Booking = require('../model/bookingModel');
 const AppError = require('../utils/AppError');
 const catchAsync = require('../utils/catchAsync');
+const inventory = require('../utils/seatInventory');
 
 const today = () => new Date().toISOString().slice(0, 10);
 const invalidId = (identifier) => typeof identifier !== 'string' || !mongoose.isObjectIdOrHexString(identifier);
@@ -20,6 +21,8 @@ function bookingData(booking) {
     paid: booking.paid,
     createdAt: booking.createdAt,
     cancelledAt: booking.cancelledAt,
+    holdStatus: booking.holdStatus || 'none',
+    holdExpiresAt: booking.holdExpiresAt,
   };
 }
 
@@ -67,16 +70,25 @@ exports.create = catchAsync(async (req, res, next) => {
 exports.list = catchAsync(async (req, res, next) => {
   const page = Number(req.query.page || 1);
   if (!Number.isSafeInteger(page) || page < 1 || page > 10000) return next(new AppError('Invalid page number.', 400));
+  await inventory.expireAllHolds({ user: req.user.id });
   const bookings = await Booking.find({ user: req.user.id }).sort({ createdAt: -1, _id: -1 }).skip((page - 1) * 12).limit(13);
   res.status(200).json({ status: 'success', hasMore: bookings.length > 12, data: { bookings: bookings.slice(0, 12).map(bookingData) } });
 });
 
 exports.cancel = catchAsync(async (req, res, next) => {
   if (invalidId(req.params.id)) return next(new AppError('Invalid booking ID.', 400));
-  const booking = await Booking.findOneAndUpdate({ _id: req.params.id, user: req.user.id, status: 'pending', paid: false, departureDate: { $gt: new Date(`${today()}T00:00:00.000Z`) } }, { $set: { status: 'cancelled', cancelledAt: new Date() } }, { new: true, runValidators: true });
-  if (booking) return res.status(200).json({ status: 'success', data: { booking: bookingData(booking) } });
-  const existing = await Booking.findOne({ _id: req.params.id, user: req.user.id });
-  if (!existing) return next(new AppError('Booking not found.', 404));
-  if (existing.status === 'cancelled') return res.status(200).json({ status: 'success', data: { booking: bookingData(existing) } });
-  return next(new AppError('Only unpaid pending requests before the departure date can be cancelled here.', 409));
+  const booking = await inventory.releaseBooking(req.params.id, req.user.id, true);
+  res.status(200).json({ status: 'success', data: { booking: bookingData(booking) } });
+});
+
+exports.hold = catchAsync(async (req, res, next) => {
+  if (invalidId(req.params.id)) return next(new AppError('Invalid booking ID.', 400));
+  const booking = await inventory.holdBooking(req.params.id, req.user.id);
+  res.status(200).json({ status: 'success', data: { booking: bookingData(booking) } });
+});
+
+exports.release = catchAsync(async (req, res, next) => {
+  if (invalidId(req.params.id)) return next(new AppError('Invalid booking ID.', 400));
+  const booking = await inventory.releaseBooking(req.params.id, req.user.id);
+  res.status(200).json({ status: 'success', data: { booking: bookingData(booking) } });
 });
