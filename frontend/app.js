@@ -449,7 +449,7 @@ document.querySelector("#auth-switch").addEventListener("click", () => {
     ? "Your journey starts here."
     : "Welcome back.";
   document.querySelector("#auth-description").textContent = signupMode
-    ? "Create an account to save experiences across your devices."
+    ? "Create an account to save experiences across your devices. Use at least 8 characters and at most 72 UTF-8 bytes for your password."
     : "Log in to keep your favourite experiences together.";
   document.querySelector("#name-field").hidden = !signupMode;
   document.querySelector("#confirm-field").hidden = !signupMode;

@@ -11,11 +11,13 @@ a shared shell on explicit customer routes, including direct refreshes.
 - `/saved`: browser-local guest favorites or authenticated account favorites.
 - `/trips`: private history, holds, cancellation, and configured test checkout.
 - `/profile`: name/email editing through the existing authenticated API.
+- `/admin`: role-gated tour metadata/departure management and read-only booking
+  ledger. See [admin studio](ADMIN.md) for access and feature boundaries.
 
 Authentication/recovery remain dialogs. Tour and booking views reuse existing
 domain actions in non-modal page panels. Live payments are disabled and hosted
 Stripe sandbox verification remains pending. Seeded tours remain marked Demo.
 
-An admin UI, structured itinerary/inclusions data, multi-image galleries, and
+Structured itinerary/inclusions data, multi-image galleries, and
 full-database destination search remain future milestones, not shipped features.
 Run npm test for direct-route regression checks; browser QA checks interactions.

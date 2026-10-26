@@ -8,7 +8,14 @@ const text = { type: 'string' };
 const identifier = { type: 'string', pattern: '^[a-fA-F0-9]{24}$' };
 const date = { type: 'string', format: 'date' };
 const timestamp = { type: 'string', format: 'date-time' };
-const password = { type: 'string', minLength: 8, writeOnly: true };
+const password = {
+  type: 'string',
+  minLength: 8,
+  maxLength: 72,
+  writeOnly: true,
+  description:
+    'At most 72 UTF-8 bytes, not just 72 characters. Confirmation must match.',
+};
 const email = { type: 'string', format: 'email' };
 const auth = [{ bearerAuth: [] }, { cookieAuth: [] }];
 const envelope = (properties) =>
@@ -172,7 +179,7 @@ add(
       requestBody: body(
         object(
           {
-            password: { ...password, maxLength: 128 },
+            password,
             confirmPassword: password,
           },
           ['password', 'confirmPassword'],
@@ -479,6 +486,41 @@ add(
   ),
 );
 
+add(
+  '/api/v1/admin/tours',
+  'get',
+  operation(
+    'adminTourCatalog',
+    'Administration',
+    'List published and hidden tours (admin)',
+    {
+      ...envelope({
+        tours: { type: 'array', maxItems: 25, items: reference('Tour') },
+      }),
+      properties: {
+        ...envelope({
+          tours: { type: 'array', maxItems: 25, items: reference('Tour') },
+        }).properties,
+        hasMore: { type: 'boolean' },
+      },
+    },
+    {
+      security: auth,
+      parameters: [
+        parameter(
+          'page',
+          'query',
+          { type: 'integer', minimum: 1, maximum: 10000, default: 1 },
+          false,
+        ),
+      ],
+      description:
+        'Administrator only; Cache-Control: no-store. Fixed page size 25. Other query parameters are rejected. Returns metadata needed by the admin studio; never provisions an administrator account.',
+      responses: errors(401, 403),
+    },
+  ),
+);
+
 module.exports = {
   openapi: '3.0.3',
   info: {
@@ -502,6 +544,7 @@ module.exports = {
     'Bookings',
     'Inventory',
     'Test payments',
+    'Administration',
   ].map((name) => ({ name })),
   paths,
   components: {

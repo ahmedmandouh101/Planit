@@ -47,6 +47,8 @@ jobs:
           done
           exit 1
       - run: npm run test:integration
+      - run: npm run test:queries
+      - run: npm run test:admin
       - run: npm run test:bookings
       - run: npm run test:inventory
       - run: npm run test:payments

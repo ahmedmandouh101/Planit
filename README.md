@@ -9,6 +9,8 @@ See [the roadmap](docs/ROADMAP.md) for the planned milestones.
 See [local development](docs/LOCAL_DEVELOPMENT.md) for commands and verification.
 See [customer application pages](docs/FRONTEND.md) for navigation, feature scope,
 and frontend limitations.
+Administrators can use `/admin` for tour metadata, departure capacity, and the
+read-only booking ledger. See [admin access and scope](docs/ADMIN.md).
 See [the core API reference](docs/API.md): browse `/api-docs` or download
 `/docs/openapi.json` from the running app. Legacy endpoint coverage is explicitly
 listed as incomplete.

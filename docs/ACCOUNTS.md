@@ -1,5 +1,8 @@
 # Accounts and saved experiences
 
+New passwords now require at least eight characters and at most 72 UTF-8 bytes.
+See [query and account validation](QUERY_CONTRACT.md) for compatibility details.
+
 Use **Log in / Sign up** in the homepage header. Signup requires a name, email, and matching passwords of at least eight characters. MongoDB must be running; Mailpit captures the welcome email locally. A welcome email failure does not prevent an already-created account from signing in.
 
 The browser authenticates with the existing JWT cookie, now marked `HttpOnly` and `SameSite=Strict` (`Secure` in production). JavaScript does not persist the token. Existing API clients can still send `Authorization: Bearer <token>`. Logout replaces the browser cookie; previously issued bearer tokens remain valid until expiry.

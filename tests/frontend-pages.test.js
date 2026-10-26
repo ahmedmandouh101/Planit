@@ -17,12 +17,14 @@ test("customer pages support direct navigation and refresh without shadowing API
     "/saved",
     "/trips",
     "/profile",
+    "/admin",
     "/tours/507f1f77bcf86cd799439011",
   ]) {
     const response = await fetch(baseUrl + route);
     assert.equal(response.status, 200);
     const html = await response.text();
     assert.match(html, /src="\/workspace.js"/);
+    assert.match(html, /href="\/journey-theme.css"/);
     assert.match(html, /Application navigation/);
     assert.match(html, /id="auth-dialog"/);
   }
@@ -31,7 +33,13 @@ test("customer pages support direct navigation and refresh without shadowing API
   assert.match(missing.headers.get("content-type"), /application\/json/);
 });
 test("workspace assets are served with same-origin security headers", async () => {
-  for (const route of ["/workspace.js", "/workspace.css", "/experience.js"]) {
+  for (const route of [
+    "/workspace.js",
+    "/admin.js",
+    "/workspace.css",
+    "/experience.js",
+    "/journey-theme.css",
+  ]) {
     const response = await fetch(baseUrl + route);
     assert.equal(response.status, 200);
     assert.ok(response.headers.get("content-security-policy"));

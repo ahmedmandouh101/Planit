@@ -14,8 +14,8 @@ const tourSchema = new mongoose.Schema(
       minLength: [10, ' tour must have above 10 characters'], // validator for strings
     },
     slug: String,
-    duration: Number,
-    MaxGroupSize: Number,
+    duration: { type: Number, min: 1, max: 365, validate: Number.isInteger },
+    MaxGroupSize: { type: Number, min: 1, max: 1000, validate: Number.isInteger },
     difficulty: {
       type: String,
       trim: true,
@@ -37,6 +37,9 @@ const tourSchema = new mongoose.Schema(
     },
     price: {
       type: Number,
+      min: 0,
+      max: 1000000,
+      validate: Number.isFinite,
       required: [true, ' tour must have a price'],
     },
     priceDiscount: {

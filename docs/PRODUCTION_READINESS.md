@@ -5,6 +5,10 @@ verification have passed. A clean dependency audit is not a security guarantee.
 
 ## Hardening delivered
 
+- Schema-aware generic list filters/projections, preserved nested review scope,
+  private-tour aggregate filtering, and scalar account/password validation.
+  See [query contract](QUERY_CONTRACT.md) for limits and compatibility changes.
+
 - Patched production dependencies, keeping Express 4 and Mongoose 8. Multer,
   Nodemailer, and Sharp were upgraded with image/SMTP regression verification.
   Recheck `npm audit --omit=dev` regularly; advisories change over time.

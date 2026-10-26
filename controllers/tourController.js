@@ -50,8 +50,8 @@ exports.alias = (req, res, next) => {
   next();
 };
 
-exports.getAllTour = factory.getAll(Tour);
-exports.getTour = factory.getOne(Tour, { path: 'reviews' });
+exports.getAllTour = factory.getAll(Tour, { secretTour: { $ne: true } });
+exports.getTour = factory.getOne(Tour, { path: 'reviews' }, { secretTour: { $ne: true } });
 exports.createTour = factory.createOne(Tour);
 exports.updateTour = factory.updateOne(Tour);
 exports.deleteTour = factory.deleteOne(Tour);
@@ -60,7 +60,7 @@ exports.deleteTour = factory.deleteOne(Tour);
 exports.getTourStats = catchAsync(async (req, res, next) => {
   const stats = await Tour.aggregate([
     {
-      $match: { ratingsAverage: { $gte: 4.5 } },
+      $match: { ratingsAverage: { $gte: 4.5 }, secretTour: { $ne: true } },
     },
     {
       $group: {
@@ -91,6 +91,8 @@ exports.getTourStats = catchAsync(async (req, res, next) => {
 
 exports.monthlyPlan = catchAsync(async (req, res, next) => {
   const year = +req.params.year;
+  if (!/^\d{4}$/.test(req.params.year) || year < 2000 || year > 2100)
+    return next(new AppError('Choose a year from 2000 to 2100.', 400));
   const plan = await Tour.aggregate([
     {
       $unwind: '$startDates', // to convert the array to a string
@@ -99,7 +101,7 @@ exports.monthlyPlan = catchAsync(async (req, res, next) => {
       $match: {
         startDates: {
           $gte: new Date(`${year}-01-01`),
-          $lte: new Date(`${year}-12-31`),
+          $lt: new Date(`${year + 1}-01-01T00:00:00.000Z`),
         },
       },
     },

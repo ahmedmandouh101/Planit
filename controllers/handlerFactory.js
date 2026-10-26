@@ -52,9 +52,15 @@ exports.createOne = (Model) =>
     });
   });
 
-exports.getOne = (Model, popOptions) =>
+exports.getOne = (Model, popOptions, fixedFilter = {}) =>
   catchAsync(async (req, res, next) => {
-    let query = Model.findById(req.params.id);
+    const filter = {
+      ...fixedFilter,
+      ...(req.params.tourId ? { tour: req.params.tourId } : {}),
+    };
+    let query = Object.keys(filter).length
+      ? Model.findOne({ _id: req.params.id, ...filter })
+      : Model.findById(req.params.id);
     if (popOptions) query = query.populate(popOptions);
     const doc = await query;
 
@@ -70,19 +76,19 @@ exports.getOne = (Model, popOptions) =>
     });
   });
 
-exports.getAll = (Model) =>
+exports.getAll = (Model, fixedFilter = {}) =>
   catchAsync(async (req, res, next) => {
     // To allow for nested GET reviews on tour (hack)
-    let filter = {};
-    if (req.params.tourId) filter = { tour: req.params.tourId };
+    let filter = { ...fixedFilter };
+    if (req.params.tourId) filter = { ...filter, tour: req.params.tourId };
 
-    const features = new APIFeatures(Model.find(filter), req.query)
+    const features = new APIFeatures(Model.find(), req.query, Model.schema)
       .filter()
       .sort()
       .limitFields()
       .paginate();
     // const doc = await features.query.explain();
-    const doc = await features.query;
+    const doc = await features.query.find(filter);
 
     // SEND RESPONSE
     res.status(200).json({

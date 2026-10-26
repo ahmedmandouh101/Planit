@@ -6,11 +6,16 @@ const catchAsync = require('../utils/catchAsync');
 const AppError = require('../utils/AppError');
 const Email = require('../utils/email');
 const validator = require('validator');
+const passwordInput = require('../utils/passwordInput');
 
 const signToken = (user) =>
-  jwt.sign({ id: user._id, passwordVersion: user.passwordVersion || 0 }, process.env.JWT_SECRET, {
-    expiresIn: process.env.JWT_SECRET_EXPIRES_IN,
-  });
+  jwt.sign(
+    { id: user._id, passwordVersion: user.passwordVersion || 0 },
+    process.env.JWT_SECRET,
+    {
+      expiresIn: process.env.JWT_SECRET_EXPIRES_IN,
+    },
+  );
 
 const createSendToken = (user, statusCode, res) => {
   const token = signToken(user);
@@ -37,9 +42,24 @@ const createSendToken = (user, statusCode, res) => {
 };
 
 exports.signup = catchAsync(async (req, res, next) => {
+  passwordInput(req.body);
+  if (
+    typeof req.body.name !== 'string' ||
+    !req.body.name.trim() ||
+    req.body.name.length > 100 ||
+    typeof req.body.email !== 'string' ||
+    req.body.email.length > 254 ||
+    !validator.isEmail(req.body.email.trim())
+  )
+    return next(
+      new AppError(
+        'Provide a name up to 100 characters and a valid email address.',
+        400,
+      ),
+    );
   const newUser = await User.create({
-    name: req.body.name,
-    email: req.body.email,
+    name: req.body.name.trim(),
+    email: req.body.email.trim().toLowerCase(),
     password: req.body.password,
     confirmPassword: req.body.confirmPassword,
   });
@@ -58,11 +78,20 @@ exports.login = catchAsync(async (req, res, next) => {
   const { email, password } = req.body;
 
   // 1) Check if email and password exist
-  if (!email || !password) {
+  if (
+    typeof email !== 'string' ||
+    !email.trim() ||
+    email.length > 254 ||
+    typeof password !== 'string' ||
+    !password ||
+    password.length > 128
+  ) {
     return next(new AppError('Please provide email and password!', 400));
   }
 
-  const user = await User.findOne({ email }).select('+password'); // because password we hide it from shcema (select = false)
+  const user = await User.findOne({ email: email.trim().toLowerCase() }).select(
+    '+password',
+  );
 
   // 2) Check if user exists && password is correct
   if (!user || !(await user.correctPassword(password, user.password))) {
@@ -94,7 +123,9 @@ exports.protect = catchAsync(async (req, res, next) => {
   }
 
   if (!token) {
-    const cookie = (req.headers.cookie || '').split(';').find((part) => part.trim().startsWith('jwt='));
+    const cookie = (req.headers.cookie || '')
+      .split(';')
+      .find((part) => part.trim().startsWith('jwt='));
     if (cookie) token = cookie.trim().slice(4);
     if (token === 'loggedout') token = undefined;
   }
@@ -119,7 +150,10 @@ exports.protect = catchAsync(async (req, res, next) => {
   }
 
   // 4) Check if user changed password after the token was issued
-  if (currentUser.changedPasswordAfter(decoded.iat) || (currentUser.passwordVersion || 0) !== (decoded.passwordVersion || 0)) {
+  if (
+    currentUser.changedPasswordAfter(decoded.iat) ||
+    (currentUser.passwordVersion || 0) !== (decoded.passwordVersion || 0)
+  ) {
     return next(
       new AppError('User recently changed password! Please log in again.', 401),
     );
@@ -146,19 +180,42 @@ exports.restrictTo = (...roles) => {
 };
 
 exports.forgetPassword = catchAsync(async (req, res, next) => {
-  if (typeof req.body.email !== 'string' || !validator.isEmail(req.body.email.trim())) {
+  if (
+    typeof req.body.email !== 'string' ||
+    !validator.isEmail(req.body.email.trim())
+  ) {
     return next(new AppError('Please provide a valid email address.', 400));
   }
-  const response = { status: 'success', message: 'If an account exists for this email, a reset link will arrive shortly. The link expires in 10 minutes.' };
+  const response = {
+    status: 'success',
+    message:
+      'If an account exists for this email, a reset link will arrive shortly. The link expires in 10 minutes.',
+  };
   // 1) Get user based on POSTed email
-  const user = await User.findOne({ email: req.body.email.trim().toLowerCase() });
+  const user = await User.findOne({
+    email: req.body.email.trim().toLowerCase(),
+  });
   if (!user) {
     return res.status(200).json(response);
   }
 
-  const appUrl = new URL(process.env.PUBLIC_APP_URL || `http://localhost:${process.env.PORT || 3000}`);
-  if (!['http:', 'https:'].includes(appUrl.protocol) || appUrl.username || appUrl.password || (process.env.NODE_ENV === 'production' && (!process.env.PUBLIC_APP_URL || appUrl.protocol !== 'https:'))) {
-    return next(new AppError('Password recovery is not configured. Please contact support.', 503));
+  const appUrl = new URL(
+    process.env.PUBLIC_APP_URL ||
+      `http://localhost:${process.env.PORT || 3000}`,
+  );
+  if (
+    !['http:', 'https:'].includes(appUrl.protocol) ||
+    appUrl.username ||
+    appUrl.password ||
+    (process.env.NODE_ENV === 'production' &&
+      (!process.env.PUBLIC_APP_URL || appUrl.protocol !== 'https:'))
+  ) {
+    return next(
+      new AppError(
+        'Password recovery is not configured. Please contact support.',
+        503,
+      ),
+    );
   }
 
   // 2) Generate the random reset token
@@ -174,26 +231,32 @@ exports.forgetPassword = catchAsync(async (req, res, next) => {
     res.status(200).json(response);
   } catch (err) {
     await User.updateOne(
-      { _id: user.id, passwordResetToken: crypto.createHash('sha256').update(resetToken).digest('hex') },
+      {
+        _id: user.id,
+        passwordResetToken: crypto
+          .createHash('sha256')
+          .update(resetToken)
+          .digest('hex'),
+      },
       { $unset: { passwordResetToken: 1, passwordResetExpires: 1 } },
     );
 
     return next(
-      new AppError('There was an error sending the email. Try again later!', 500),
+      new AppError(
+        'There was an error sending the email. Try again later!',
+        500,
+      ),
     );
   }
 });
 
 exports.resetPassword = catchAsync(async (req, res, next) => {
   if (!/^[a-f0-9]{64}$/.test(req.params.token)) {
-    return next(new AppError('Password reset token is invalid or has expired.', 400));
+    return next(
+      new AppError('Password reset token is invalid or has expired.', 400),
+    );
   }
-  if (typeof req.body.password !== 'string' || req.body.password.length < 8 || req.body.password.length > 128) {
-    return next(new AppError('Use a password between 8 and 128 characters.', 400));
-  }
-  if (req.body.password !== req.body.confirmPassword) {
-    return next(new AppError('Passwords do not match.', 400));
-  }
+  passwordInput(req.body);
   const hashedToken = crypto // we hashed the   resetToken which was  sent via email
     .createHash('sha256')
     .update(req.params.token)
@@ -216,11 +279,17 @@ exports.resetPassword = catchAsync(async (req, res, next) => {
   user.confirmPassword = req.body.confirmPassword;
   user.passwordResetToken = undefined;
   user.passwordResetExpires = undefined;
-  user.$where = { passwordResetToken: hashedToken, passwordResetExpires: { $gt: new Date() } };
+  user.$where = {
+    passwordResetToken: hashedToken,
+    passwordResetExpires: { $gt: new Date() },
+  };
   try {
     await user.save();
   } catch (error) {
-    if (error.name === 'DocumentNotFoundError') return next(new AppError('Password reset token is invalid or has expired.', 400));
+    if (error.name === 'DocumentNotFoundError')
+      return next(
+        new AppError('Password reset token is invalid or has expired.', 400),
+      );
     throw error;
   }
 
@@ -228,6 +297,13 @@ exports.resetPassword = catchAsync(async (req, res, next) => {
 });
 
 exports.updatePassword = catchAsync(async (req, res, next) => {
+  passwordInput(req.body);
+  if (
+    typeof req.body.currentPassword !== 'string' ||
+    !req.body.currentPassword ||
+    req.body.currentPassword.length > 128
+  )
+    return next(new AppError('Provide your current password as text.', 400));
   // 1) Get user from collection
   const user = await User.findById(req.user.id).select('+password');
 

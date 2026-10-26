@@ -11,11 +11,13 @@
     <link rel="stylesheet" href="/styles.css" />
     <link rel="stylesheet" href="/experience.css" />
     <link rel="stylesheet" href="/workspace.css" />
+    <link rel="stylesheet" href="/journey-theme.css" />
     <script src="/experience.js" defer></script>
     <script src="/app.js" defer></script>
     <script src="/recovery.js" defer></script>
     <script src="/bookings.js" defer></script>
     <script src="/workspace.js" defer></script>
+    <script src="/admin.js" defer></script>
   </head>
   <body>
     <a class="skip-link" href="#main-content">Skip to content</a>
@@ -46,6 +48,12 @@
       </div>
     </header>
     <main id="main-content" tabindex="-1">
+      <section
+        id="admin-page"
+        class="wrap admin-page"
+        hidden
+        aria-labelledby="admin-title"
+      ></section>
       <nav class="app-nav wrap" aria-label="Application navigation">
         <a href="/explore">Discover</a><a href="/saved">Wishlist</a
         ><a href="/trips">My trips</a><a href="/profile">My account</a>

@@ -40,6 +40,7 @@ app.use(express.static(path.join(__dirname, 'frontend')));
 app.get(['/explore', '/trips', '/saved', '/profile', '/tours/:tourId'], (req, res) => {
   res.sendFile(path.join(__dirname, 'frontend', 'index.html'));
 });
+app.get('/admin', (req, res) => res.sendFile(path.join(__dirname, 'frontend', 'index.html')));
 
 // it's a logging middleware
 if (process.env.NODE_ENV === 'development') {
@@ -102,6 +103,7 @@ app.use('/api/v1/places', placesRouter);
 app.use('/api/v1/reviews', reviewRouter);
 app.use('/api/v1/bookings', bookingRouter);
 app.use('/api/v1/departures', require('./routes/departureRouter'));
+app.use('/api/v1/admin', require('./routes/adminRouter'));
 app.use('/api/v1/search', searchRouter);
 app.use('/api/v1/drivers', driverRouter);
 

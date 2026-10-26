@@ -6,6 +6,9 @@ Delivered hardening: patched dependencies, CI production dependency audit,
 generic CRUD write-field allowlists, bounded list pagination, decoded image
 validation/upload limits, and production configuration checks. Operational
 release gates remain open; see [production readiness](PRODUCTION_READINESS.md).
+Follow-up hardening adds schema-aware read queries, nested review scoping,
+secret-tour visibility guards, and consistent new-password/account validation.
+See [query contract](QUERY_CONTRACT.md) for compatibility changes.
 
 - Secure signup, driver mutations, and review ownership.
 - Make local startup repeatable and document required services.
@@ -45,6 +48,10 @@ JSON logs with correlated unexpected errors. See [request tracing](OBSERVABILITY
 - Publish a verified demo and document architecture and engineering decisions.
 
 ## 5. Product expansion
+
+Delivered: admin studio for tour metadata/visibility, transactional departure
+configuration, and read-only booking review. No automatic admin provisioning or
+payment overrides. See [admin scope](ADMIN.md).
 
 - Add favorites and itinerary planning by city, budget, and duration.
 - Add an admin interface and a client application.

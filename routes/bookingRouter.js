@@ -16,6 +16,7 @@ router.post('/:id/checkout', require('../controllers/paymentController').checkou
 router.post('/:id/checkout/cancel', require('../controllers/paymentController').cancel);
 
 router.use(authController.restrictTo('admin'));
+router.use((req, res, next) => { res.set('Cache-Control', 'no-store'); next(); });
 router.use('/:id', bookingController.protectInventory);
 
 router

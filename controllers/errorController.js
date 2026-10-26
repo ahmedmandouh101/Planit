@@ -73,6 +73,7 @@ module.exports = (err, req, res, next) => {
     sendErrorDev(err, res);
   } else {
     let error = Object.assign(new Error(err.message), err);
+    error.name = err.name;
     if (error.name === 'MulterError')
       error = new AppError(
         error.code === 'LIMIT_FILE_SIZE'

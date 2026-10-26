@@ -39,7 +39,7 @@
     const descriptions = {
       request: "Enter your email and we’ll send you a link to reset it.",
       reset:
-        "Choose a new password with at least 8 characters. Your reset link can only be used once.",
+        "Choose a new password with at least 8 characters and at most 72 UTF-8 bytes. Your reset link can only be used once.",
       sent: "If an account exists for this email, a reset link will arrive shortly. Check your spam folder too. The link expires in 10 minutes.",
       invalid:
         "The reset link is invalid, expired, or has already been used. Request a new link to continue.",

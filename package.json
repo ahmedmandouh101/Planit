@@ -12,6 +12,8 @@
     "test:bookings": "node --test integration/bookings.js",
     "test:inventory": "node --test integration/inventory.js",
     "test:payments": "node --test integration/payments.js",
+    "test:queries": "node --test integration/queries.js",
+    "test:admin": "node --test integration/admin.js",
     "setup:local": "node scripts/setup-local.js",
     "seed:demo": "node scripts/seed.js",
     "mail:local": "node scripts/mail-local.js",
