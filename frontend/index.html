@@ -10,13 +10,15 @@
     <title>Planit — Discover a different side of Egypt</title>
     <link rel="stylesheet" href="/styles.css" />
     <link rel="stylesheet" href="/experience.css" />
+    <link rel="stylesheet" href="/workspace.css" />
     <script src="/experience.js" defer></script>
     <script src="/app.js" defer></script>
     <script src="/recovery.js" defer></script>
     <script src="/bookings.js" defer></script>
+    <script src="/workspace.js" defer></script>
   </head>
   <body>
-    <a class="skip-link" href="#explore">Skip to experiences</a>
+    <a class="skip-link" href="#main-content">Skip to content</a>
     <header class="site-header wrap">
       <a class="brand" href="/" aria-label="Planit home" dir="ltr"
         >planit<span>↗</span></a
@@ -43,7 +45,17 @@
         </button>
       </div>
     </header>
-    <main>
+    <main id="main-content" tabindex="-1">
+      <nav class="app-nav wrap" aria-label="Application navigation">
+        <a href="/explore">Discover</a><a href="/saved">Wishlist</a
+        ><a href="/trips">My trips</a><a href="/profile">My account</a>
+      </nav>
+      <section class="workspace-heading wrap" id="workspace-heading" hidden>
+        <p class="eyebrow">YOUR EGYPT STORY STARTS HERE</p>
+        <h1 id="workspace-title"></h1>
+        <p id="workspace-description"></p>
+      </section>
+      <section id="profile-page" class="wrap profile-page" hidden></section>
       <section class="hero wrap" aria-labelledby="hero-title">
         <div class="hero-copy">
           <p class="eyebrow">
@@ -188,6 +200,25 @@
               <option value="price">Price: low to high</option>
               <option value="-price">Price: high to low</option>
               <option value="duration">Duration: shortest first</option>
+            </select></label
+          >
+          <label
+            ><span>Budget per person (USD)</span
+            ><input
+              id="budget"
+              type="number"
+              min="0"
+              max="1000000"
+              step="1"
+              placeholder="Any budget"
+          /></label>
+          <label
+            ><span>Trip length</span
+            ><select id="trip-length">
+              <option value="">Any duration</option>
+              <option value="1">1 day</option>
+              <option value="3">Up to 3 days</option>
+              <option value="7">Up to 7 days</option>
             </select></label
           >
           <button class="button primary" type="submit">

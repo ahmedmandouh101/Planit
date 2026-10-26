@@ -318,11 +318,15 @@ async function loadMyBookings(append = false) {
 }
 
 function showMyBookings() {
+  if (window.location.pathname !== "/trips") {
+    window.location.assign("/trips");
+    return;
+  }
   if (!currentUser) {
     accountButton.click();
     return;
   }
-  bookingsDialog.showModal();
+  if (!bookingsDialog.open) bookingsDialog.show();
   loadMyBookings();
 }
 document
@@ -330,7 +334,9 @@ document
   .addEventListener("click", showMyBookings);
 document
   .querySelector("#bookings-refresh")
-  .addEventListener("click", () => loadMyBookings());
+  .addEventListener("click", () =>
+    currentUser ? loadMyBookings() : showMyBookings(),
+  );
 document
   .querySelector("#close-bookings")
   .addEventListener("click", () => bookingsDialog.close());
@@ -343,8 +349,10 @@ bookingsMore.addEventListener("click", () => {
   loadMyBookings(true);
 });
 document.addEventListener("planit:account-change", () => {
-  if (bookingsDialog.open) bookingsDialog.close();
-  if (dialog.open) dialog.close();
+  if (bookingsDialog.open && window.location.pathname !== "/trips")
+    bookingsDialog.close();
+  if (dialog.open && !window.location.pathname.startsWith("/tours/"))
+    dialog.close();
   openCheckoutReturn();
 });
 

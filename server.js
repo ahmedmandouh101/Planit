@@ -9,12 +9,7 @@ process.on('uncaughtException', (err) => {
   process.exit(1);
 });
 
-if (!(process.env.DATABASE_LOCAL || process.env.DATABASE)) {
-  throw new Error('Set DATABASE_LOCAL or DATABASE in the environment');
-}
-if (!process.env.JWT_SECRET || process.env.JWT_SECRET.length < 32) {
-  throw new Error('Set JWT_SECRET to a random secret of at least 32 characters');
-}
+const configuration = require('./utils/validateEnvironment')(process.env);
 process.env.JWT_SECRET_EXPIRES_IN ||= '7d';
 process.env.JWT_COOKIE_EXPIRES_IN ||= '7';
 const app = require('./app');
@@ -30,7 +25,7 @@ let stopPaymentWorker;
 // );
 
 mongoose
-  .connect(process.env.DATABASE_LOCAL || process.env.DATABASE, {
+  .connect(configuration.database, {
     // .connect(DB, { //if you wanna connect on the local database
   })
   .then(async () => {

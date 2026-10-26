@@ -1,6 +1,7 @@
 const catchAsync = require('../utils/catchAsync');
 const AppError = require('../utils/AppError');
 const APIFeatures = require('../utils/apiFeatures');
+const writeFields = require('../utils/writeFields');
 
 exports.deleteOne = (Model) =>
   catchAsync(async (req, res, next) => {
@@ -18,10 +19,14 @@ exports.deleteOne = (Model) =>
 
 exports.updateOne = (Model) =>
   catchAsync(async (req, res, next) => {
-    const doc = await Model.findByIdAndUpdate(req.params.id, req.body, {
-      new: true,
-      runValidators: true,
-    });
+    const doc = await Model.findByIdAndUpdate(
+      req.params.id,
+      writeFields(Model.modelName, req.body),
+      {
+        new: true,
+        runValidators: true,
+      },
+    );
 
     if (!doc) {
       return next(new AppError('No document found with that ID', 404));
@@ -37,7 +42,7 @@ exports.updateOne = (Model) =>
 
 exports.createOne = (Model) =>
   catchAsync(async (req, res, next) => {
-    const doc = await Model.create(req.body);
+    const doc = await Model.create(writeFields(Model.modelName, req.body));
 
     res.status(201).json({
       status: 'success',

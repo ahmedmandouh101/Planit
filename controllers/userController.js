@@ -1,6 +1,8 @@
 /* eslint-disable import/no-extraneous-dependencies */
-const multer = require('multer');
-const sharp = require('sharp');
+const { randomUUID } = require('node:crypto');
+const { writeFile, mkdir } = require('node:fs/promises');
+const path = require('node:path');
+const imageUpload = require('../utils/imageUpload');
 const User = require('../model/userModel');
 const mongoose = require('mongoose');
 const Tour = require('../model/tourModel');
@@ -19,33 +21,16 @@ const factory = require('./handlerFactory');
 //   },
 // });
 
-const storageMulter = multer.memoryStorage(); // save it in buffer
-
-const filterMulter = (req, file, cb) => {
-  if (file.mimetype.startsWith('image')) {
-    cb(null, true);
-  } else {
-    cb(new AppError('Please upload a valid image file.', 400), false);
-  }
-};
-
-const upload = multer({
-  storage: storageMulter,
-  fileFilter: filterMulter,
-});
-
-exports.uploadUserPhoto = upload.single('photo');
+exports.uploadUserPhoto = imageUpload.upload.single('photo');
 
 exports.resizeUserPhoto = catchAsync(async (req, res, next) => {
   if (!req.file) return next();
 
-  req.file.filename = `user-${req.user.id}-${Date.now()}.jpeg`;
-
-  await sharp(req.file.buffer)
-    .resize(500, 500)
-    .toFormat('jpeg')
-    .jpeg({ quality: 90 })
-    .toFile(`public/img/users/${req.file.filename}`);
+  const buffer = await imageUpload.jpeg(req.file.buffer, 500, 500);
+  req.file.filename = `user-${randomUUID()}.jpeg`;
+  const directory = path.join(__dirname, '../public/img/users');
+  await mkdir(directory, { recursive: true });
+  await writeFile(path.join(directory, req.file.filename), buffer);
 
   next();
 });
@@ -64,21 +49,29 @@ exports.getMe = (req, res, next) => {
 };
 
 exports.getSavedTours = catchAsync(async (req, res) => {
-  const user = await User.findById(req.user.id).select('+savedTours').populate('savedTours');
+  const user = await User.findById(req.user.id)
+    .select('+savedTours')
+    .populate('savedTours');
   res.status(200).json({ status: 'success', data: { tours: user.savedTours } });
 });
 
 exports.saveTour = catchAsync(async (req, res, next) => {
-  if (!mongoose.isObjectIdOrHexString(req.params.tourId)) return next(new AppError('Invalid tour ID', 400));
+  if (!mongoose.isObjectIdOrHexString(req.params.tourId))
+    return next(new AppError('Invalid tour ID', 400));
   const tour = await Tour.findById(req.params.tourId);
   if (!tour) return next(new AppError('Tour not found', 404));
-  await User.findByIdAndUpdate(req.user.id, { $addToSet: { savedTours: tour.id } });
+  await User.findByIdAndUpdate(req.user.id, {
+    $addToSet: { savedTours: tour.id },
+  });
   res.status(200).json({ status: 'success' });
 });
 
 exports.removeSavedTour = catchAsync(async (req, res, next) => {
-  if (!mongoose.isObjectIdOrHexString(req.params.tourId)) return next(new AppError('Invalid tour ID', 400));
-  await User.findByIdAndUpdate(req.user.id, { $pull: { savedTours: req.params.tourId } });
+  if (!mongoose.isObjectIdOrHexString(req.params.tourId))
+    return next(new AppError('Invalid tour ID', 400));
+  await User.findByIdAndUpdate(req.user.id, {
+    $pull: { savedTours: req.params.tourId },
+  });
   res.status(200).json({ status: 'success' });
 });
 

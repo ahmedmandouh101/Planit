@@ -18,6 +18,8 @@ let loaded = [];
 let selectedQuery = "";
 let selectedDifficulty = "";
 let selectedSort = "price";
+let selectedBudget = "";
+let selectedDuration = "";
 let savedOnly = false;
 let currentUser = null;
 let accountTours = [];
@@ -164,10 +166,9 @@ function renderCard(tour) {
   const footer = element("div", "card-footer");
   const amount = element("span", "price", price(tour.price));
   amount.append(element("small", "", "/ person"));
-  const button = element("button", "detail-button", "View details ↗");
-  button.type = "button";
+  const button = element("a", "detail-button", "Explore experience ↗");
+  button.href = `/tours/${encodeURIComponent(tour._id)}`;
   button.setAttribute("aria-label", `View ${tour.name} details`);
-  button.addEventListener("click", () => showDetails(tour._id));
   footer.append(amount, button);
   body.append(meta, footer);
   card.append(visual, body);
@@ -180,6 +181,8 @@ function render() {
     (tour) =>
       (!savedOnly || savedTours.has(tour._id)) &&
       (!selectedDifficulty || tour.difficulty === selectedDifficulty) &&
+      (selectedBudget === "" || tour.price <= Number(selectedBudget)) &&
+      (selectedDuration === "" || tour.duration <= Number(selectedDuration)) &&
       `${tour.name} ${tour.startLocation?.address || ""}`
         .toLocaleLowerCase()
         .includes(query),
@@ -216,6 +219,8 @@ async function loadTours(append = false) {
     loadMore.hidden = true;
   }
   const params = new URLSearchParams({ page, limit, sort: selectedSort });
+  if (selectedBudget !== "") params.set("price[lte]", selectedBudget);
+  if (selectedDuration !== "") params.set("duration[lte]", selectedDuration);
   if (selectedDifficulty) params.set("difficulty", selectedDifficulty);
   try {
     const result = await api(`/api/v1/tours?${params}`);
@@ -248,16 +253,44 @@ async function showDetails(identifier) {
   const loadingTitle = element("h2", "", "Loading tour details…");
   loadingTitle.id = "dialog-title";
   content.replaceChildren(loadingTitle);
-  dialog.showModal();
+  if (window.location.pathname.startsWith("/tours/")) {
+    if (!dialog.open) dialog.show();
+  } else dialog.showModal();
   try {
     const result = await api(`/api/v1/tours/${encodeURIComponent(identifier)}`);
     if (version !== detailVersion || !dialog.open) return;
     const tour = result.data.data;
+    document.title = `${tour.name} — Planit`;
     content.replaceChildren(
       element("p", "eyebrow", "YOUR EXPERIENCE, AT A GLANCE"),
       element("h2", "", tour.name),
     );
     content.querySelector("h2").id = "dialog-title";
+    if (window.location.pathname.startsWith("/tours/")) {
+      const gallery = element("div", "tour-gallery");
+      const photo = element("img");
+      photo.src =
+        tour.imageCover === "demo-placeholder.svg"
+          ? "/demo-placeholder.svg"
+          : `/img/tours/${encodeURIComponent(tour.imageCover || "")}`;
+      photo.alt = tour.name;
+      photo.addEventListener(
+        "error",
+        () => {
+          photo.src = "/demo-placeholder.svg";
+        },
+        { once: true },
+      );
+      gallery.append(
+        photo,
+        element(
+          "span",
+          "gallery-label",
+          tour.startLocation?.address || "Egypt",
+        ),
+      );
+      content.append(gallery);
+    }
     content.append(element("p", "", tour.description || tour.summary));
     const details = element("dl", "detail-list");
     for (const [label, value] of [
@@ -311,6 +344,18 @@ form.addEventListener("submit", (event) => {
   selectedQuery = document.querySelector("#query").value.trim();
   selectedDifficulty = document.querySelector("#difficulty").value;
   selectedSort = document.querySelector("#sort").value;
+  selectedBudget = document.querySelector("#budget").value;
+  selectedDuration = document.querySelector("#trip-length").value;
+  if (window.location.pathname === "/explore") {
+    const query = new URLSearchParams({
+      q: selectedQuery,
+      difficulty: selectedDifficulty,
+      sort: selectedSort,
+      budget: selectedBudget,
+      duration: selectedDuration,
+    });
+    history.replaceState(null, "", `/explore?${query}`);
+  }
   loadTours();
 });
 loadMore.addEventListener("click", () => {
@@ -318,6 +363,11 @@ loadMore.addEventListener("click", () => {
   loadTours(true);
 });
 savedToggle.addEventListener("click", () => {
+  if (window.location.pathname !== "/saved") {
+    window.location.assign("/saved");
+    return;
+  }
+  savedOnly = false;
   savedOnly = !savedOnly;
   savedToggle.setAttribute("aria-pressed", String(savedOnly));
   render();

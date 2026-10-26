@@ -37,6 +37,9 @@ app.get('/api-docs', require('./controllers/apiDocsController').index);
 app.post('/api/v1/payments/webhook', express.raw({ type: 'application/json', limit: '128kb' }), require('./controllers/paymentController').webhook);
 app.get('/api/v1/payments/status', require('./controllers/paymentController').status);
 app.use(express.static(path.join(__dirname, 'frontend')));
+app.get(['/explore', '/trips', '/saved', '/profile', '/tours/:tourId'], (req, res) => {
+  res.sendFile(path.join(__dirname, 'frontend', 'index.html'));
+});
 
 // it's a logging middleware
 if (process.env.NODE_ENV === 'development') {

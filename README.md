@@ -3,8 +3,12 @@
 ## Development foundation
 
 This repository is being modernized. It is not ready for production payments.
+See [production readiness gates](docs/PRODUCTION_READINESS.md) for implemented
+hardening, startup requirements, and outstanding operational verification.
 See [the roadmap](docs/ROADMAP.md) for the planned milestones.
 See [local development](docs/LOCAL_DEVELOPMENT.md) for commands and verification.
+See [customer application pages](docs/FRONTEND.md) for navigation, feature scope,
+and frontend limitations.
 See [the core API reference](docs/API.md): browse `/api-docs` or download
 `/docs/openapi.json` from the running app. Legacy endpoint coverage is explicitly
 listed as incomplete.

@@ -255,7 +255,7 @@ add(
         parameter('fields', 'query', text, false),
       ],
       description:
-        'Comma-separated sort fields; prefix a field with - for descending order. Field selection changes the response shape. Legacy list pagination has no enforced maximum; clients should request a reasonable limit.',
+        'Comma-separated sort fields; prefix a field with - for descending order. Field selection changes the response shape. Page must be from 1 to 10000; limit must be from 1 to 100. Invalid values return 400.',
     },
   ),
 );

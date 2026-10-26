@@ -1,29 +1,16 @@
 /* eslint-disable import/no-extraneous-dependencies */
-const multer = require('multer');
-const sharp = require('sharp');
+const { randomUUID } = require('node:crypto');
+const { writeFile, mkdir } = require('node:fs/promises');
+const path = require('node:path');
+const imageUpload = require('../utils/imageUpload');
 const Tour = require('../model/tourModel');
 const catchAsync = require('../utils/catchAsync');
-const AppError = require('../utils/AppError'); 
+const AppError = require('../utils/AppError');
 const factory = require('./handlerFactory');
 // const AppError = require('../utils/AppError');
 // const APIFeature = require('../utils/apiFeatures');
 
-const multerStorage = multer.memoryStorage();
-
-const multerFilter = (req, file, cb) => {
-  if (file.mimetype.startsWith('image')) {
-    cb(null, true);
-  } else {
-    cb(new AppError('Not an image! Please upload only images.', 400), false);
-  }
-};
-
-const upload = multer({
-  storage: multerStorage,
-  fileFilter: multerFilter,
-});
-
-exports.uploadTourImages = upload.fields([
+exports.uploadTourImages = imageUpload.upload.fields([
   { name: 'imageCover', maxCount: 1 },
   { name: 'images', maxCount: 3 },
 ]);
@@ -32,33 +19,28 @@ exports.uploadTourImages = upload.fields([
 // upload.array('images', 5) req.files
 
 exports.resizeTourImages = catchAsync(async (req, res, next) => {
-  if (!req.files || !req.files.imageCover || !req.files.images) return next();
-
-  // 1) Cover image
-  req.body.imageCover = `tour-${req.params.id}-${Date.now()}-cover.jpeg`;
-  await sharp(req.files.imageCover[0].buffer)
-    .resize(2000, 1333)
-    .toFormat('jpeg')
-    .jpeg({ quality: 90 })
-    .toFile(`public/img/tours/${req.body.imageCover}`);
-
-  // 2) Images
-  req.body.images = [];
-
-  await Promise.all(
-    req.files.images.map(async (file, i) => {
-      const filename = `tour-${req.params.id}-${Date.now()}-${i + 1}.jpeg`;
-
-      await sharp(file.buffer)
-        .resize(2000, 1333)
-        .toFormat('jpeg')
-        .jpeg({ quality: 90 })
-        .toFile(`public/img/tours/${filename}`);
-
-      req.body.images.push(filename);
-    }),
+  if (!req.files || !Object.keys(req.files).length) return next();
+  const files = [...(req.files.imageCover || []), ...(req.files.images || [])];
+  const converted = await Promise.all(
+    files.map(async (file) => ({
+      field: file.fieldname,
+      filename: `tour-${randomUUID()}.jpeg`,
+      buffer: await imageUpload.jpeg(file.buffer, 2000, 1333),
+    })),
   );
-
+  const directory = path.join(__dirname, '../public/img/tours');
+  await mkdir(directory, { recursive: true });
+  await Promise.all(
+    converted.map((file) =>
+      writeFile(path.join(directory, file.filename), file.buffer),
+    ),
+  );
+  const cover = converted.find((file) => file.field === 'imageCover');
+  if (cover) req.body.imageCover = cover.filename;
+  if (req.files.images)
+    req.body.images = converted
+      .filter((file) => file.field === 'images')
+      .map((file) => file.filename);
   next();
 });
 

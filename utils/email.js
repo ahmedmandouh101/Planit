@@ -9,10 +9,13 @@ module.exports = class Email {
   }
 
   newTransport() {
-    if (process.env.NODE_ENV === 'production') {
+    if (process.env.NODE_ENV === 'production' && !process.env.EMAIL_HOST) {
       // Sendgrid
       return nodemailer.createTransport({
         service: 'SendGrid',
+        requireTLS: true,
+        connectionTimeout: 10000,
+        socketTimeout: 10000,
         auth: {
           user: process.env.SENDGRID_USERNAME,
           pass: process.env.SENDGRID_PASSWORD,
@@ -24,6 +27,7 @@ module.exports = class Email {
       host: process.env.EMAIL_HOST,
       port: Number(process.env.EMAIL_PORT || 1025),
       secure: process.env.EMAIL_SECURE === 'true',
+      requireTLS: process.env.NODE_ENV === 'production',
       connectionTimeout: 10000,
       socketTimeout: 10000,
     };
@@ -52,7 +56,8 @@ module.exports = class Email {
     // Define the content for the welcome email
     const subject = 'Welcome to Planit!';
     const htmlContent = `<p>Welcome to Planit!</p><p>Your account is ready. Sign in to start planning your next trip.</p>`;
-    const textContent = 'Welcome to Planit! Your account is ready. Sign in to start planning your next trip.';
+    const textContent =
+      'Welcome to Planit! Your account is ready. Sign in to start planning your next trip.';
 
     // Send the welcome email
     await this.send(subject, htmlContent, textContent);

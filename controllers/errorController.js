@@ -45,12 +45,14 @@ const sendErrorProd = (err, req, res) => {
     // Programming or other unknown error: don't leak error details
   } else {
     // 1) Log error
-    console.error(JSON.stringify({
-      event: 'request_error',
-      timestamp: new Date().toISOString(),
-      requestId: req.requestId,
-      statusCode: 500,
-    }));
+    console.error(
+      JSON.stringify({
+        event: 'request_error',
+        timestamp: new Date().toISOString(),
+        requestId: req.requestId,
+        statusCode: 500,
+      }),
+    );
 
     // 2) Send generic message
     res.status(500).json({
@@ -71,6 +73,17 @@ module.exports = (err, req, res, next) => {
     sendErrorDev(err, res);
   } else {
     let error = Object.assign(new Error(err.message), err);
+    if (error.name === 'MulterError')
+      error = new AppError(
+        error.code === 'LIMIT_FILE_SIZE'
+          ? 'Each image must be at most 5 MiB.'
+          : 'Upload exceeds the allowed file, field, or part limits.',
+        error.code === 'LIMIT_FILE_SIZE' ? 413 : 400,
+      );
+    if (error.type === 'entity.too.large')
+      error = new AppError('Request body is too large.', 413);
+    if (error.type === 'entity.parse.failed')
+      error = new AppError('Malformed JSON body.', 400);
 
     if (error.name === 'CastError') error = handleCastErrorDB(error);
     if (error.code === 11000) error = handleDuplicateFieldsDB(error);

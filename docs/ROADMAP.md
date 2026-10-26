@@ -2,6 +2,11 @@
 
 ## 1. Reliable foundation (in progress)
 
+Delivered hardening: patched dependencies, CI production dependency audit,
+generic CRUD write-field allowlists, bounded list pagination, decoded image
+validation/upload limits, and production configuration checks. Operational
+release gates remain open; see [production readiness](PRODUCTION_READINESS.md).
+
 - Secure signup, driver mutations, and review ownership.
 - Make local startup repeatable and document required services.
 - Add regression tests and continuous integration.
