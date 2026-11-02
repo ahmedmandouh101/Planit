@@ -11,6 +11,8 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
+      - run: npm --prefix client ci
+      - run: npm run build:client
       - name: Audit production dependencies
         run: npm audit --omit=dev --audit-level=high
       - run: npm test

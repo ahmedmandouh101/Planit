@@ -1,5 +1,15 @@
 # Customer application
 
+## React migration
+
+The first isolated React preview lives in `client/` and is served at `/react/`
+after `npm --prefix client ci` and `npm run build:client`. It currently contains
+one clearly labelled teaching tour with a details toggle, not live API data.
+Use `npm run dev:client` for standalone development. See
+[the first React lesson](REACT_LEARNING.md) for setup and concepts.
+
+## Existing application
+
 The frontend uses native HTML, CSS, and JavaScript, not React. Express serves
 a shared shell on explicit customer routes, including direct refreshes.
 

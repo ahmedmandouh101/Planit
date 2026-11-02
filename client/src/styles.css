@@ -1,0 +1,20 @@
+:root { font-family: system-ui, sans-serif; color: #213d36; background: #f7f6f0; font-synthesis: none; }
+* { box-sizing: border-box; }
+body { margin: 0; }
+.page { max-width: 1050px; margin: auto; padding: 24px; }
+.header { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding-bottom: 30px; border-bottom: 1px solid #d9ded7; }
+.brand { color: inherit; font-size: 30px; font-weight: 800; text-decoration: none; }
+.badge { border: 1px solid #b9ccc0; border-radius: 30px; padding: 7px 12px; font-size: 13px; }
+main { padding: 56px 0; }
+.eyebrow { font-size: 12px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; }
+h1 { max-width: 650px; font-size: clamp(36px, 6vw, 64px); line-height: 1.08; margin: 18px 0; }
+.intro { max-width: 600px; line-height: 1.7; color: #52665f; }
+.tour-card { max-width: 420px; margin-top: 32px; border: 1px solid #d9ded7; border-radius: 20px; overflow: hidden; background: #fff; }
+.tour-art { display: grid; place-items: center; height: 180px; background: #e6d6b9; color: #806644; font-size: 150px; line-height: 1; }
+.tour-content { padding: 24px; }
+h2 { font-size: 24px; margin: 12px 0; }
+p { line-height: 1.6; }
+button { border: 0; border-radius: 9px; background: #245647; color: #fff; padding: 12px 18px; font: inherit; cursor: pointer; }
+button:hover { background: #183e32; }
+:focus-visible { outline: 3px solid #9c6416; outline-offset: 4px; }
+footer { border-top: 1px solid #d9ded7; padding: 24px 0; font-size: 13px; color: #52665f; }

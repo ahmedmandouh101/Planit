@@ -32,6 +32,8 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 // Set security http headers
 app.use(helmet());
+// Keep the React migration isolated while existing customer pages stay available.
+app.use('/react', express.static(path.join(__dirname, 'client', 'dist')));
 app.get('/docs/openapi.json', require('./controllers/apiDocsController').specification);
 app.get('/api-docs', require('./controllers/apiDocsController').index);
 app.post('/api/v1/payments/webhook', express.raw({ type: 'application/json', limit: '128kb' }), require('./controllers/paymentController').webhook);

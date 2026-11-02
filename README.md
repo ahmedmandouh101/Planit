@@ -2,6 +2,12 @@
 
 ## Development foundation
 
+React migration has started in `client/`. Run `npm --prefix client ci`, then
+`npm run dev:client` and open `http://127.0.0.1:5173/react/` for the isolated
+preview. To serve it through Express, run `npm run build:client` before startup.
+See [the first React lesson](docs/REACT_LEARNING.md). Existing pages still use
+the original frontend while features are migrated incrementally.
+
 This repository is being modernized. It is not ready for production payments.
 See [production readiness gates](docs/PRODUCTION_READINESS.md) for implemented
 hardening, startup requirements, and outstanding operational verification.

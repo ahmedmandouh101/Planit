@@ -3,6 +3,8 @@
   "version": "1.0.0",
   "main": "server.js",
   "scripts": {
+    "dev:client": "npm --prefix client run dev",
+    "build:client": "npm --prefix client run build",
     "start": "node server.js",
     "dev": "node --watch server.js",
     "start:prod": "node server.js",
