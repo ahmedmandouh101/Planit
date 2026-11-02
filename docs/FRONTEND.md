@@ -4,9 +4,13 @@
 
 The first isolated React preview lives in `client/` and is served at `/react/`
 after `npm --prefix client ci` and `npm run build:client`. It currently contains
-one clearly labelled teaching tour with a details toggle, not live API data.
-Use `npm run dev:client` for standalone development. See
-[the first React lesson](REACT_LEARNING.md) for setup and concepts.
+an API-backed tour catalog with loading, empty and error states, retry,
+paginated loading, cover images and a details toggle. Demo records retain their
+label. Existing customer pages remain available while migration continues.
+Use `npm run dev:client` alongside the backend on port 3000; Vite proxies API
+and image requests to it. React tests run with `npm run test:client`.
+See [the first React lesson](REACT_LEARNING.md) and
+[loading real tours](REACT_TOUR_CATALOG.md) for setup and concepts.
 
 ## Existing application
 
