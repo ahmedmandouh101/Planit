@@ -1,11 +1,12 @@
 export const PAGE_SIZE = 12;
 
-export async function fetchTours(page, signal) {
+export async function fetchTours(page, signal, difficulty = '') {
   const params = new URLSearchParams({
     page: String(page),
     limit: String(PAGE_SIZE),
     sort: 'price,_id',
   });
+  if (difficulty) params.set('difficulty', difficulty);
   const response = await fetch(`/api/v1/tours?${params}`, {
     signal: AbortSignal.any([signal, AbortSignal.timeout(10000)]),
   });
