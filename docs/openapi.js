@@ -253,6 +253,7 @@ add(
         parameter('page', 'query', { type: 'integer', default: 1 }, false),
         parameter('limit', 'query', { type: 'integer', default: 100 }, false),
         parameter('sort', 'query', text, false),
+        parameter('q', 'query', { type: 'string', minLength: 1, maxLength: 100, description: 'Case-insensitive literal substring of the tour name or starting address.' }, false),
         parameter(
           'difficulty',
           'query',

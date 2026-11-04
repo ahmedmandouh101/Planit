@@ -91,6 +91,20 @@ test('query field allowlists reject hidden fields, unknown paths, malformed list
   );
 });
 
+test('tour search matches literal name or address while keeping public and difficulty filters', async (context) => {
+  const query = queryDouble();
+  context.mock.method(Tour, 'find', () => query);
+  const response = await fetch(baseUrl + '/api/v1/tours?q=cairo.&difficulty=easy');
+  assert.equal(response.status, 200);
+  assert.deepEqual(query.filter.secretTour, { $ne: true });
+  assert.equal(query.filter.difficulty, 'easy');
+  const [byName, byAddress] = query.filter.$or;
+  for (const condition of [byName.name, byAddress['startLocation.address']]) {
+    assert.ok(condition.test('Grand Cairo.'));
+    assert.equal(condition.test('Grand Cairo!'), false);
+  }
+});
+
 test('nested review route scope takes precedence over a conflicting query filter', async () => {
   const query = queryDouble();
   const model = { schema: Review.schema, find: () => query };
@@ -167,6 +181,9 @@ test('invalid account and list inputs return 400 before database access', async 
     'fields=%2Bpassword',
     'price[ne]=1',
     'unknown=1',
+    'q=%20',
+    'q[ne]=x',
+    'q=' + 'a'.repeat(101),
   ]) {
     const response = await fetch(`${baseUrl}/api/v1/tours?${query}`);
     assert.equal(response.status, 400);
