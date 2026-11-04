@@ -76,13 +76,22 @@ exports.getOne = (Model, popOptions, fixedFilter = {}) =>
     });
   });
 
-exports.getAll = (Model, fixedFilter = {}) =>
+exports.getAll = (Model, fixedFilter = {}, searchFields = []) =>
   catchAsync(async (req, res, next) => {
     // To allow for nested GET reviews on tour (hack)
     let filter = { ...fixedFilter };
     if (req.params.tourId) filter = { ...filter, tour: req.params.tourId };
 
-    const features = new APIFeatures(Model.find(), req.query, Model.schema)
+    const parameters = { ...req.query };
+    if (searchFields.length && parameters.q !== undefined) {
+      const term = parameters.q;
+      if (typeof term !== 'string' || !term.trim() || term.length > 100)
+        throw new AppError('Provide a search query between 1 and 100 characters.', 400);
+      const pattern = new RegExp(term.trim().replace(/[.*+?^$(){}|[\]\\]/g, '\\$&'), 'i');
+      filter.$or = searchFields.map((field) => ({ [field]: pattern }));
+      delete parameters.q;
+    }
+    const features = new APIFeatures(Model.find(), parameters, Model.schema)
       .filter()
       .sort()
       .limitFields()

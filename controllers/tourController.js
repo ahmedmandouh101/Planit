@@ -50,7 +50,7 @@ exports.alias = (req, res, next) => {
   next();
 };
 
-exports.getAllTour = factory.getAll(Tour, { secretTour: { $ne: true } });
+exports.getAllTour = factory.getAll(Tour, { secretTour: { $ne: true } }, ['name', 'startLocation.address']);
 exports.getTour = factory.getOne(Tour, { path: 'reviews' }, { secretTour: { $ne: true } });
 exports.createTour = factory.createOne(Tour);
 exports.updateTour = factory.updateOne(Tour);

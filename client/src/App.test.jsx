@@ -5,6 +5,34 @@ import App from './App.jsx';
 
 afterEach(cleanup);
 
+test('submits a trimmed search and clears it without sending a request on each keystroke', async () => {
+  const fetch = vi.fn().mockResolvedValue(response([]));
+  vi.stubGlobal('fetch', fetch);
+  render(<App />);
+  await screen.findByText(/No experiences available yet/);
+  fireEvent.change(screen.getByRole('searchbox'), { target: { value: ' Cairo ' } });
+  expect(fetch).toHaveBeenCalledTimes(1);
+  fireEvent.click(screen.getByRole('button', { name: 'Search' }));
+  await screen.findByText(/No experiences match your search/);
+  expect(fetch.mock.lastCall[0]).toContain('&q=Cairo');
+  fireEvent.click(screen.getByRole('button', { name: 'Clear search' }));
+  await screen.findByText(/No experiences available yet/);
+  expect(fetch.mock.lastCall[0]).not.toContain('&q=');
+});
+
+test('changing price order starts at page one and preserves difficulty', async () => {
+  const fullPage = Array.from({ length: 12 }, (_, i) => tour(i));
+  const fetch = vi.fn().mockImplementation(async () => response(fullPage));
+  vi.stubGlobal('fetch', fetch);
+  render(<App />);
+  await screen.findByRole('button', { name: 'Load more experiences' });
+  fireEvent.change(screen.getByLabelText('Difficulty'), { target: { value: 'easy' } });
+  fireEvent.click(await screen.findByRole('button', { name: 'Load more experiences' }));
+  await waitFor(() => expect(fetch.mock.lastCall[0]).toContain('page=2'));
+  fireEvent.change(screen.getByLabelText('Price order'), { target: { value: '-price' } });
+  await waitFor(() => expect(fetch.mock.lastCall[0]).toBe('/api/v1/tours?page=1&limit=12&sort=-price%2C_id&difficulty=easy'));
+});
+
 function tour(index, extra = {}) {
   return { _id: `tour-${index}`, name: `Egypt experience ${index}`, price: 75,
     duration: 2, summary: 'Discover ancient Egypt.', imageCover: 'cover.jpeg',
